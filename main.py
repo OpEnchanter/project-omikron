@@ -155,8 +155,9 @@ class gameObject():
         self.isEnemy = False
         self.followingPlayer = False
         self.rendered = True
-        self.hp = 10
-        self.maxhp = 10
+        self.hp = 3
+        self.maxhp = 3
+        self.lastShotTime = 0
 
         presprite = pygame.Surface((500, 500), pygame.SRCALPHA)
         presprite.fill(pygame.SRCALPHA)
@@ -208,15 +209,15 @@ def player(self):
         if keys[pygame.K_a]:
             self.xvel -= 10
 
-        if self.position["x"] < -2500:
-            self.position["x"] = 2500
-        if self.position["x"] > 2500:
-            self.position["x"] = -2500
+        if self.position["x"] < -5500:
+            self.position["x"] = -5500
+        if self.position["x"] > 5500:
+            self.position["x"] = 5500
 
-        if self.position["y"] < -2500:
-            self.position["y"] = 2500
-        if self.position["y"] > 2500:
-            self.position["y"] = -2500
+        if self.position["y"] < -5500:
+            self.position["y"] = -5500
+        if self.position["y"] > 5500:
+            self.position["y"] = 5500
 
 
         self.position["x"] += self.xvel * self.timer.deltaTime
@@ -258,6 +259,10 @@ def player(self):
         self.sprite = pygame.transform.rotate(self.original_sprite, -angle)
         self.rotated_rect = self.sprite.get_rect(center=self.rect.center)
 
+        # Temporary condition for when hp is 0
+        if self.hp <= 0:
+            self.hp = self.maxhp
+
 def enemy(self):
     global paused
     if not paused and self.rendered:
@@ -280,7 +285,7 @@ def enemy(self):
         if hdist < 10 and self.gotoHome:
             self.gotoHome = False
 
-        if hdist < 700 and not self.gotoHome:
+        if hdist < 1750 and not self.gotoHome:
             px = gameObjects[len(gameObjects)-1].position["x"]
             py = gameObjects[len(gameObjects)-1].position["y"]
             
@@ -291,8 +296,23 @@ def enemy(self):
 
             if pdist < 350 and pdist > 100 or self.followingPlayer and pdist > 100:
 
+                # Allow enemy to shoot at player
+                if (time.time() - self.lastShotTime > 1):
+                    shootsfx.play()
+
+                    angle = self.angle
+                    bullet = gameObject(self.position["x"], self.position["y"], "bullet", -angle, 1, [enemyBullet], gameTimer)
+                    angle_rad = math.radians(-angle+90)
+                    bullet.xvel = math.sin(angle_rad) * 1000
+                    bullet.yvel = math.cos(angle_rad) * 1000
+                    bullet.angle = -angle
+                    gameObjects.insert(len(gameObjects)-2, bullet)
+                    self.lastShotTime = time.time()
+
                 angle_rad = math.atan2(vy, vx)
                 angle_deg = math.degrees(angle_rad)
+
+                self.angle = angle_deg
 
                 self.xvel += vx/10
                 self.yvel += vy/10
@@ -301,7 +321,7 @@ def enemy(self):
                 self.rotated_rect = self.sprite.get_rect(center=self.rect.center)
                 self.followingPlayer = True
 
-            allies = [obj for obj in gameObjects if obj.isEnemy]
+            allies = [obj for obj in gameObjects if obj.isEnemy and obj.rendered]
             for ally in allies:
                 ax = ally.position["x"]
                 ay = ally.position["y"]
@@ -346,6 +366,9 @@ def enemy(self):
             # Add 1 to score (temporary)
             global score
             score += 1
+            # Add a 33% chance for killing enemy to heal player
+            if random.randint(1,3) == 1 and gameObjects[len(gameObjects)-1].hp < gameObjects[len(gameObjects)-1].maxhp:
+                gameObjects[len(gameObjects)-1].hp += 1
             gameObjects.pop(gameObjects.index(self)) # Remove enemy
 
 def playerBullet(self):
@@ -361,14 +384,41 @@ def playerBullet(self):
 
 
         # Check for collision with enemy and deal damage
-        enemies = [enemy for enemy in gameObjects if enemy.isEnemy]
+        enemies = [enemy for enemy in gameObjects if enemy.isEnemy and enemy.rendered]
         for enemy in enemies:
             if self.position["x"] > enemy.position["x"]-50 and self.position["x"] < enemy.position["x"]+50:
                 if self.position["y"] > enemy.position["y"]-50 and self.position["y"] < enemy.position["y"]+50:
                     if enemy in gameObjects:
                         enemy.hp -= 1
+                        enemy.followingPlayer = True
+                        enemy.gotoHome = False
                         if self in gameObjects:
                             gameObjects.pop(gameObjects.index(self))
+
+    # Check if object is being rendered and if not remove object
+    if not self.rendered and self in gameObjects:
+        gameObjects.pop(gameObjects.index(self))
+
+def enemyBullet(self):
+    global paused
+    if not paused:
+        self.position["x"] += self.xvel * self.timer.deltaTime
+        self.position["y"] += self.yvel * self.timer.deltaTime
+
+        angle = self.angle
+
+        self.sprite = pygame.transform.rotate(self.original_sprite, angle)
+        self.rotated_rect = self.sprite.get_rect(center=self.rect.center)
+
+
+        # Check for collision with enemy and deal damage
+        player = gameObjects[len(gameObjects)-1]
+        if self.position["x"] > player.position["x"]-50 and self.position["x"] < player.position["x"]+50:
+            if self.position["y"] > player.position["y"]-50 and self.position["y"] < player.position["y"]+50:
+                if player.hp > 0:
+                    player.hp -= 1
+                    if self in gameObjects:
+                        gameObjects.pop(gameObjects.index(self))
 
     # Check if object is being rendered and if not remove object
     if not self.rendered and self in gameObjects:
@@ -407,7 +457,7 @@ gameObjects.append(gameObject(250, 250, "circle", 0, 5, [], gameTimer))
 """Spawn Planets"""
 for x in range(100):
     planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
-    gameObjects.append(gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer))
+    gameObjects.insert(0, gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer))
     for i in range(3):
         enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "mesh", 0, 1, [enemy], gameTimer)
         #enemyObj.followingPlayer = False
@@ -415,7 +465,11 @@ for x in range(100):
         enemyObj.gotoHome = True
         enemyObj.home = {"x":planetPosition[0]+math.sin((360/3)*i)*10,"y":planetPosition[1]+math.cos((360/3)*i)*10}
         gameObjects.append(enemyObj)
-gameObjects.append(gameObject(250, 250, "mesh", 0, 1, [player], gameTimer))
+
+player = gameObject(250, 250, "mesh", 0, 1, [player], gameTimer)
+player.hp = 10
+player.maxhp = 10
+gameObjects.append(player)
 
 uiElements = []
 
@@ -433,12 +487,14 @@ uiElements[3].hidden = True
 uiElements[4].hidden = True
 
 uiElements.append(uiElement(uiForm.panel, (75, 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "0", []))
+uiElements.append(uiElement(uiForm.panel, (500, 50), (win.get_width()/2, -5), (145,145,145), (255,255,255), 48, (45,45,45), "", []))
+uiElements.append(uiElement(uiForm.panel, (480, 25), (win.get_width()/2, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", []))
 
 paused = False
+lastShotTime = 0
 
 running = True
 while running:
-    win.fill((0,0,0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -447,30 +503,32 @@ while running:
             if keys[pygame.K_ESCAPE]:
                 paused = not paused
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not paused and pygame.mouse.get_pressed()[0]:
+            if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.1:
                 # Play sfx
                 shootsfx.play()
                 # Spawn a bullet
                 angle = gameObjects[len(gameObjects)-1].angle
-                gameObjects.insert(0, gameObject(gameObjects[len(gameObjects)-1].position["x"], gameObjects[len(gameObjects)-1].position["y"], "bullet", -angle, 1, [playerBullet], gameTimer))
+                bullet = gameObject(gameObjects[len(gameObjects)-1].position["x"], gameObjects[len(gameObjects)-1].position["y"], "bullet", -angle, 1, [playerBullet], gameTimer)
                 angle_rad = math.radians(-angle+90)
-                gameObjects[0].xvel = math.sin(angle_rad) * 1000
-                gameObjects[0].yvel = math.cos(angle_rad) * 1000
-                gameObjects[0].angle = -angle
-                pass
+                bullet.xvel = math.sin(angle_rad) * 1000
+                bullet.yvel = math.cos(angle_rad) * 1000
+                bullet.angle = -angle
+                gameObjects.insert(len(gameObjects)-2, bullet)
+                lastShotTime = time.time()
         if event.type == pygame.JOYBUTTONDOWN:
             if not paused:
-                if joystick.get_button(0):
+                if joystick.get_button(0) and time.time() - lastShotTime > 0.1:
                     # Play sfx
                     shootsfx.play()
                     # Spawn a bullet
                     angle = gameObjects[len(gameObjects)-1].angle
-                    gameObjects.insert(0, gameObject(gameObjects[len(gameObjects)-1].position["x"], gameObjects[len(gameObjects)-1].position["y"], "bullet", -angle, 1, [playerBullet], gameTimer))
+                    bullet = gameObject(gameObjects[len(gameObjects)-1].position["x"], gameObjects[len(gameObjects)-1].position["y"], "bullet", -angle, 1, [playerBullet], gameTimer)
                     angle_rad = math.radians(-angle+90)
-                    gameObjects[0].xvel = math.sin(angle_rad) * 1000
-                    gameObjects[0].yvel = math.cos(angle_rad) * 1000
-                    gameObjects[0].angle = -angle
-                    pass
+                    bullet.xvel = math.sin(angle_rad) * 1000
+                    bullet.yvel = math.cos(angle_rad) * 1000
+                    bullet.angle = -angle
+                    gameObjects.insert(len(gameObjects)-2, bullet)
+                    lastShotTime = time.time()
             if joystick.get_button(6):
                 paused = not paused
 
@@ -496,9 +554,26 @@ while running:
     uiElements[5].text = str(score)
     uiElements[5].relsprite()
 
+
+    # Player hp bar ui
+
+    hpPercent = gameObjects[len(gameObjects)-1].hp / gameObjects[len(gameObjects)-1].maxhp
+
+    uiElements[6].position["x"] = (win.get_size()[0]/4)-uiElements[6].scale["x"]/4
+    uiElements[6].relsprite()
+
+    uiElements[7].position["x"] = (win.get_size()[0]/4)-uiElements[6].scale["x"]/4+5
+    uiElements[7].scale["x"] = 480*hpPercent
+    uiElements[7].relsprite()
+
     #inCombat = any(obj for obj in gameObjects if obj.followingPlayer == True)
 
-    pygame.time.Clock().tick(600)
+    win.fill((0,0,0))
+
+    gameCamera.render(gameObjects)
+    gameUiHandler.render(uiElements)
+
+    pygame.time.Clock().tick(6000)
     gameTimer.frame()
 
     for obj in gameObjects:
@@ -506,8 +581,6 @@ while running:
     for elem in uiElements:
         elem.frame()
 
-    gameCamera.render(gameObjects)
-    gameUiHandler.render(uiElements)
     pygame.display.flip()
 
 pygame.quit()
