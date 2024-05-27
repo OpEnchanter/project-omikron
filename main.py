@@ -18,10 +18,12 @@ if (pygame.joystick.get_count() > 0):
 
 shootsfx = pygame.mixer.Sound("shoot.wav")
 selectsfx = pygame.mixer.Sound("select.wav")
+explodesfx = pygame.mixer.Sound("explosion.wav")
 pygame.mixer.music.load('Ambient.wav')
 pygame.mixer.music.set_volume(0.3)
 shootsfx.set_volume(0.4)
 selectsfx.set_volume(0.4)
+explodesfx.set_volume(0.8)
 
 # Play the song indefinitely
 pygame.mixer.music.play(loops=-2)
@@ -320,6 +322,19 @@ def enemy(self):
                 self.sprite = pygame.transform.rotate(self.original_sprite, -angle_deg)
                 self.rotated_rect = self.sprite.get_rect(center=self.rect.center)
                 self.followingPlayer = True
+            elif pdist < 100 and self.followingPlayer:
+                ivx = self.position["x"]-px
+                ivy = self.position["y"]-py
+
+                angle_rad = math.atan2(vy, vx)
+                angle_deg = math.degrees(angle_rad)
+
+                self.xvel += ivx
+                self.yvel += ivy
+
+                self.sprite = pygame.transform.rotate(self.original_sprite, -angle_deg)
+                self.rotated_rect = self.sprite.get_rect(center=self.rect.center)
+                self.followingPlayer = True
 
             allies = [obj for obj in gameObjects if obj.isEnemy and obj.rendered]
             for ally in allies:
@@ -366,6 +381,9 @@ def enemy(self):
             # Add 1 to score (temporary)
             global score
             score += 1
+            
+            explodesfx.play()
+
             # Add a 33% chance for killing enemy to heal player
             if random.randint(1,3) == 1 and gameObjects[len(gameObjects)-1].hp < gameObjects[len(gameObjects)-1].maxhp:
                 gameObjects[len(gameObjects)-1].hp += 1
