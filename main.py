@@ -1,6 +1,7 @@
 import pygame, math, sys, time, random
 
 score = 0
+ingame = True
 
 pygame.mixer.pre_init(22050, -16, 1, 512)  # Adjust buffer size as needed
 pygame.init()
@@ -46,17 +47,38 @@ class timer():
         self.fps = 1/self.deltaTime
         self.curTime = time.time()
 
+class cameraAction():
+    cameraShake = 0
+
 class camera():
     def __init__(self):
         self.position = {"x": 0, "y": 0}
+        self.cameraActionStart = {"x":0,"y":0}
+        self.runningCameraAction = False
+        self.camActionType = 0
+        self.camActionFramesLeft = 0
     def render(self, gameObjects):
+        cameraOffset = [0,0]
+        if self.runningCameraAction and self.camActionType == cameraAction.cameraShake:
+            cameraOffset = [random.randint(-10,10), random.randint(-10,10)]
+            self.camActionFramesLeft -= 1
+        if self.camActionFramesLeft <= 0:
+            self.runningCameraAction = False
         for obj in gameObjects:
-            renderedPosition = [obj.rotated_rect.topleft[0]+obj.position["x"]+self.position["x"], obj.rotated_rect.topleft[1]+obj.position["y"]+self.position["y"]]
+            renderedPosition = [obj.rotated_rect.topleft[0]+obj.position["x"]+self.position["x"]+cameraOffset[0], obj.rotated_rect.topleft[1]+obj.position["y"]+self.position["y"]+cameraOffset[1]]
             if (renderedPosition[0] > -500 and renderedPosition[0] < win.get_width()+500 and renderedPosition[1] > -500 and renderedPosition[1] < win.get_height()+500):
                 win.blit(obj.sprite, (renderedPosition[0], renderedPosition[1]))
                 obj.rendered = True
             else:
                 obj.rendered = False
+    def runCameraAction(self, action):
+        if not self.runningCameraAction:
+            self.runningCameraAction = True
+            self.cameraActionStart = self.position
+            self.camActionType = action
+            self.camActionFramesLeft = 10
+            
+            
 class uiForm():
     button = 0
     panel = 1
@@ -199,7 +221,7 @@ class gameObject():
     def frame(self):
         for script in self.scripts:
             script(self)
-def player(self):
+def playerScript(self):
     global paused
     if not paused:
         winx, winy = win.get_size()
@@ -443,6 +465,7 @@ def enemyBullet(self):
                     player.hp -= 1
                     player.xvel = self.xvel / 3
                     player.yvel = self.yvel / 3
+                    gameCamera.runCameraAction(cameraAction.cameraShake)
                     if self in gameObjects:
                         gameObjects.pop(gameObjects.index(self))
 
@@ -458,9 +481,11 @@ def orbit(self):
     self.position["x"] += 5
     self.position["y"] += 5
 
-def quitGame(self):
-    pygame.quit()
-    sys.exit()
+def gotoTitle(self):
+    global ingame
+    ingame = False
+    global titleScreen
+    titleScreen = True
 
 def openSettings(self):
     pass
@@ -495,119 +520,109 @@ def play(self):
 def leave(self):
     pygame.quit()
     sys.exit()
-
-titleRenderer = uiHandler()
-titleUI = []
-
-titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Project: Omikron", []))
-titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, 75), (115,115,115), (255,255,255), 48, (45,45,45), "Play", [play]))
-titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, 150), (115,115,115), (255,255,255), 48, (45,45,45), "Quit", [leave]))
-
-while titleScreen:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            titleScreen = False
-            pygame.quit()
-            sys.exit()
-
-    titleUI[0].scale["x"] = win.get_size()[0]
-    titleUI[0].relsprite()
-
-    titleUI[1].position["x"] = (win.get_width()/2)-(350/2)
-    titleUI[1].frame()
-
-    titleUI[2].position["x"] = (win.get_width()/2)-(350/2)
-    titleUI[2].frame()
-
-    if titleScreen:
-        win.fill((0,0,0))
-        titleRenderer.render(titleUI)
-        pygame.display.flip()
-
-
-gameTimer = timer()
-gameCamera = camera()
-gameUiHandler = uiHandler()
-gameObjects = []
-
-gameObjects.append(gameObject(250, 250, "circle", 0, 5, [], gameTimer))
-
-
-"""Spawn Planets"""
-
-minPlanetDist = 700
-
-for x in range(100):
-    planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
-    nearestPlanet = 0
-    while nearestPlanet < minPlanetDist:
-        for obj in gameObjects:
-            dist = math.sqrt((planetPosition[0] - obj.position["x"])**2 + (planetPosition[1] - obj.position["y"])**2)
-            if dist > nearestPlanet:
-                nearestPlanet = dist
-        if nearestPlanet < minPlanetDist:
-            planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
-    gameObjects.insert(0, gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer))
-    for i in range(3):
-        enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "mesh", 0, 1, [enemy], gameTimer)
-        #enemyObj.followingPlayer = False
-        enemyObj.isEnemy = True
-        enemyObj.gotoHome = True
-        enemyObj.home = {"x":planetPosition[0]+math.sin((360/3)*i)*10,"y":planetPosition[1]+math.cos((360/3)*i)*10}
-        gameObjects.append(enemyObj)
-
-player = gameObject(250, 250, "mesh", 0, 1, [player], gameTimer)
-player.hp = 10
-player.maxhp = 10
-gameObjects.append(player)
-
-uiElements = []
-
-"""Create UI"""
-uiElements.append(uiElement(uiForm.panel, (75, 1000), (0, -5), (100, 100, 100), (0,0,0), 24, (45,45,45), "", []))
-uiElements.append(uiElement(uiForm.button, (100, 35), (5, 45), (145, 145, 145), (0,0,0), 24, (45,45,45), "Null", []))
-uiElements.append(uiElement(uiForm.button, (100, 35), (5, 85), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
-uiElements.append(uiElement(uiForm.button, (100, 35), (5, 125), (145, 145, 145), (0,0,0), 24, (45,45,45), "Settings", [openSettings]))
-uiElements.append(uiElement(uiForm.button, (100, 35), (5, 165), (145, 145, 145), (0,0,0), 24, (45,45,45), "Quit", [quitGame]))
-
-uiElements[0].hidden = True
-uiElements[1].hidden = True
-uiElements[2].hidden = True
-uiElements[3].hidden = True
-uiElements[4].hidden = True
-
-uiElements.append(uiElement(uiForm.panel, (75, 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "0", []))
-uiElements.append(uiElement(uiForm.panel, (500, 55), (win.get_width()/2, -10), (145,145,145), (255,255,255), 48, (45,45,45), "", []))
-uiElements.append(uiElement(uiForm.panel, (480, 35), (win.get_width()/2, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", []))
-
-paused = False
-lastShotTime = 0
-
 running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_ESCAPE]:
-                paused = not paused
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.6:
-                # Play sfx
-                shootsfx.play()
-                # Spawn a bullet
-                angle = gameObjects[len(gameObjects)-1].angle
-                bullet = gameObject(gameObjects[len(gameObjects)-1].position["x"], gameObjects[len(gameObjects)-1].position["y"], "bullet", -angle, 1, [playerBullet], gameTimer)
-                angle_rad = math.radians(-angle+90)
-                bullet.xvel = math.sin(angle_rad) * 1000
-                bullet.yvel = math.cos(angle_rad) * 1000
-                bullet.angle = -angle
-                gameObjects.insert(len(gameObjects)-2, bullet)
-                lastShotTime = time.time()
-        if event.type == pygame.JOYBUTTONDOWN:
-            if not paused:
-                if joystick.get_button(0) and time.time() - lastShotTime > 0.6:
+while running: 
+
+    titleRenderer = uiHandler()
+    titleUI = []
+
+    titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Project: Omikron", []))
+    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, 75), (115,115,115), (255,255,255), 48, (45,45,45), "Play", [play]))
+    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, 150), (115,115,115), (255,255,255), 48, (45,45,45), "Quit", [leave]))
+
+    while titleScreen:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                titleScreen = False
+                pygame.quit()
+                sys.exit()
+
+        titleUI[0].scale["x"] = win.get_size()[0]
+        titleUI[0].relsprite()
+
+        titleUI[1].position["x"] = (win.get_width()/2)-(350/2)
+        titleUI[1].frame()
+
+        titleUI[2].position["x"] = (win.get_width()/2)-(350/2)
+        titleUI[2].frame()
+
+        if titleScreen:
+            win.fill((0,0,0))
+            titleRenderer.render(titleUI)
+            pygame.display.flip()
+
+
+    gameTimer = timer()
+    gameCamera = camera()
+    gameUiHandler = uiHandler()
+    gameObjects = []
+
+    gameObjects.append(gameObject(250, 250, "circle", 0, 5, [], gameTimer))
+
+
+    """Spawn Planets"""
+
+    minPlanetDist = 250
+
+    for x in range(100):
+        planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
+        nearestPlanet = 1000000000000000
+        while nearestPlanet < minPlanetDist:
+            nearestPlanet = 100000000000
+            for obj in gameObjects:
+                dist = math.sqrt((planetPosition[0] - obj.position["x"])**2 + (planetPosition[1] - obj.position["y"])**2)
+                if dist < nearestPlanet:
+                    nearestPlanet = dist
+            if nearestPlanet < minPlanetDist:
+                planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
+        gameObjects.insert(0, gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer))
+        for i in range(3):
+            enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "mesh", 0, 1, [enemy], gameTimer)
+            #enemyObj.followingPlayer = False
+            enemyObj.isEnemy = True
+            enemyObj.gotoHome = True
+            enemyObj.home = {"x":planetPosition[0]+math.sin((360/3)*i)*10,"y":planetPosition[1]+math.cos((360/3)*i)*10}
+            gameObjects.append(enemyObj)
+
+    player = gameObject(250, 250, "mesh", 0, 1, [playerScript], gameTimer)
+    player.hp = 10
+    player.maxhp = 10
+    gameObjects.append(player)
+
+    uiElements = []
+
+    """Create UI"""
+    uiElements.append(uiElement(uiForm.panel, (75, 1000), (0, -5), (100, 100, 100), (0,0,0), 24, (45,45,45), "", []))
+    uiElements.append(uiElement(uiForm.button, (100, 35), (5, 45), (145, 145, 145), (0,0,0), 24, (45,45,45), "Null", []))
+    uiElements.append(uiElement(uiForm.button, (100, 35), (5, 85), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
+    uiElements.append(uiElement(uiForm.button, (100, 35), (5, 125), (145, 145, 145), (0,0,0), 24, (45,45,45), "Settings", [openSettings]))
+    uiElements.append(uiElement(uiForm.button, (100, 35), (5, 165), (145, 145, 145), (0,0,0), 24, (45,45,45), "Home", [gotoTitle]))
+
+    uiElements[0].hidden = True
+    uiElements[1].hidden = True
+    uiElements[2].hidden = True
+    uiElements[3].hidden = True
+    uiElements[4].hidden = True
+
+    uiElements.append(uiElement(uiForm.panel, (75, 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "0", []))
+    uiElements.append(uiElement(uiForm.panel, (500, 55), (win.get_width()/2, -10), (145,145,145), (255,255,255), 48, (45,45,45), "", []))
+    uiElements.append(uiElement(uiForm.panel, (480, 35), (win.get_width()/2, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", []))
+
+    paused = False
+    lastShotTime = 0
+    ingame = True
+    while ingame:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                ingame = False
+                titleScreen = False
+            if event.type == pygame.KEYDOWN:
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_ESCAPE]:
+                    paused = not paused
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.6:
                     # Play sfx
                     shootsfx.play()
                     # Spawn a bullet
@@ -619,59 +634,74 @@ while running:
                     bullet.angle = -angle
                     gameObjects.insert(len(gameObjects)-2, bullet)
                     lastShotTime = time.time()
-            if joystick.get_button(6):
-                paused = not paused
+            if event.type == pygame.JOYBUTTONDOWN:
+                if not paused:
+                    if joystick.get_button(0) and time.time() - lastShotTime > 0.6:
+                        # Play sfx
+                        shootsfx.play()
+                        # Spawn a bullet
+                        angle = gameObjects[len(gameObjects)-1].angle
+                        bullet = gameObject(gameObjects[len(gameObjects)-1].position["x"], gameObjects[len(gameObjects)-1].position["y"], "bullet", -angle, 1, [playerBullet], gameTimer)
+                        angle_rad = math.radians(-angle+90)
+                        bullet.xvel = math.sin(angle_rad) * 1000
+                        bullet.yvel = math.cos(angle_rad) * 1000
+                        bullet.angle = -angle
+                        gameObjects.insert(len(gameObjects)-2, bullet)
+                        lastShotTime = time.time()
+                if joystick.get_button(6):
+                    paused = not paused
 
-    if paused:
-        uiElements[0].hidden = False
-        uiElements[1].hidden = False
-        uiElements[2].hidden = False
-        uiElements[3].hidden = False
-        uiElements[4].hidden = False
+        if paused:
+            uiElements[0].hidden = False
+            uiElements[1].hidden = False
+            uiElements[2].hidden = False
+            uiElements[3].hidden = False
+            uiElements[4].hidden = False
 
-        #pygame.mixer.music.pause()
-        pygame.mixer.music.set_volume(0.2)
-    else:
-        uiElements[0].hidden = True
-        uiElements[1].hidden = True
-        uiElements[2].hidden = True
-        uiElements[3].hidden = True
-        uiElements[4].hidden = True
+            #pygame.mixer.music.pause()
+            pygame.mixer.music.set_volume(0.2)
+        else:
+            uiElements[0].hidden = True
+            uiElements[1].hidden = True
+            uiElements[2].hidden = True
+            uiElements[3].hidden = True
+            uiElements[4].hidden = True
 
-        #pygame.mixer.music.unpause()
-        pygame.mixer.music.set_volume(0.4)
+            #pygame.mixer.music.unpause()
+            pygame.mixer.music.set_volume(0.4)
 
-    uiElements[5].text = str(score)
-    uiElements[5].relsprite()
+        uiElements[5].text = str(score)
+        uiElements[5].relsprite()
 
 
-    # Player hp bar ui
+        # Player hp bar ui
 
-    hpPercent = gameObjects[len(gameObjects)-1].hp / gameObjects[len(gameObjects)-1].maxhp
+        hpPercent = gameObjects[len(gameObjects)-1].hp / gameObjects[len(gameObjects)-1].maxhp
 
-    uiElements[6].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2
-    uiElements[6].relsprite()
+        uiElements[6].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2
+        uiElements[6].relsprite()
 
-    uiElements[7].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2+10
-    uiElements[7].scale["x"] = 480*hpPercent
-    uiElements[7].relsprite()
+        uiElements[7].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2+10
+        uiElements[7].scale["x"] = 480*hpPercent
+        uiElements[7].relsprite()
 
-    #inCombat = any(obj for obj in gameObjects if obj.followingPlayer == True)
+        #inCombat = any(obj for obj in gameObjects if obj.followingPlayer == True)
 
-    win.fill((0,0,0))
+        win.fill((0,0,0))
 
-    gameCamera.render(gameObjects)
-    gameUiHandler.render(uiElements)
+        gameCamera.render(gameObjects)
 
-    pygame.time.Clock().tick(6000)
-    gameTimer.frame()
+        pygame.time.Clock().tick(6000)
+        gameTimer.frame()
 
-    for obj in gameObjects:
-        obj.frame()
-    for elem in uiElements:
-        elem.frame()
+        for obj in gameObjects:
+            obj.frame()
+        for elem in uiElements:
+            elem.frame()
 
-    pygame.display.flip()
+        gameUiHandler.render(uiElements)
+
+        pygame.display.flip()
 
 pygame.quit()
 sys.exit()
