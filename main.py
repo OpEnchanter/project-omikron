@@ -19,11 +19,13 @@ if (pygame.joystick.get_count() > 0):
 shootsfx = pygame.mixer.Sound("shoot.wav")
 selectsfx = pygame.mixer.Sound("select.wav")
 explodesfx = pygame.mixer.Sound("explosion.wav")
+hitsfx = pygame.mixer.Sound("hit.wav")
 pygame.mixer.music.load('Ambient.wav')
 pygame.mixer.music.set_volume(0.3)
 shootsfx.set_volume(0.4)
 selectsfx.set_volume(0.4)
 explodesfx.set_volume(0.8)
+hitsfx.set_volume(0.8)
 
 # Play the song indefinitely
 pygame.mixer.music.play(loops=-2)
@@ -84,28 +86,28 @@ class uiElement():
         self.onclick = onclick
         self.clicked = False
         if form == uiForm.button:
-            presprite = pygame.Surface((1000,1000), pygame.SRCALPHA)
-            pygame.draw.rect(presprite, self.color, (self.position["x"], self.position["y"], self.scale["x"], self.scale["y"]), 0, 10)
+            presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
+            pygame.draw.rect(presprite, self.color, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
             text = font.render(self.text, True, self.fontcolor)
-            text_rect = text.get_rect(center=(self.position["x"]+self.scale["x"]/2, self.position["y"]+self.scale["y"]/2))
+            text_rect = text.get_rect(center=(self.scale["x"]/2, self.scale["y"]/2))
             presprite.blit(text, text_rect)
             self.sprite = presprite
         if form == uiForm.panel:
-            presprite = pygame.Surface((1000,1000), pygame.SRCALPHA)
-            pygame.draw.rect(presprite, self.color, (self.position["x"], self.position["y"], self.scale["x"], self.scale["y"]), 0, 10)
+            presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
+            pygame.draw.rect(presprite, self.color, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
             text = font.render(self.text, True, self.fontcolor)
-            text_rect = text.get_rect(center=(self.position["x"]+self.scale["x"]/2, self.position["y"]+self.scale["y"]/2))
+            text_rect = text.get_rect(center=(self.scale["x"]/2, self.scale["y"]/2))
             presprite.blit(text, text_rect)
             self.sprite = presprite
     def frame(self):
         if self.form == uiForm.button and not self.hidden:
             mousex, mousey = pygame.mouse.get_pos()
-            if mousex > self.position["x"] and mousex < self.position["x"]+self.scale["x"] and mousey > self.position["y"]*2 and mousey < self.position["y"]*2+self.scale["y"]:
+            if mousex > self.position["x"] and mousex < self.position["x"]+self.scale["x"] and mousey > self.position["y"] and mousey < self.position["y"]+self.scale["y"]:
                 font = pygame.font.Font(None, self.fontsize)
-                presprite = pygame.Surface((500,500), pygame.SRCALPHA)
-                pygame.draw.rect(presprite, self.hovercolor, (self.position["x"], self.position["y"], self.scale["x"], self.scale["y"]), 0, 10)
+                presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
+                pygame.draw.rect(presprite, self.hovercolor, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
                 text = font.render(self.text, True, self.fontcolor)
-                text_rect = text.get_rect(center=(self.position["x"]+self.scale["x"]/2, self.position["y"]+self.scale["y"]/2))
+                text_rect = text.get_rect(center=(self.scale["x"]/2, self.scale["y"]/2))
                 presprite.blit(text, text_rect)
                 self.sprite = presprite
 
@@ -119,27 +121,27 @@ class uiElement():
                     self.clicked = False
             else:
                 font = pygame.font.Font(None, self.fontsize)
-                presprite = pygame.Surface((1000,1000), pygame.SRCALPHA)
-                pygame.draw.rect(presprite, self.color, (self.position["x"], self.position["y"], self.scale["x"], self.scale["y"]), 0, 10)
+                presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
+                pygame.draw.rect(presprite, self.color, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
                 text = font.render(self.text, True, self.fontcolor)
-                text_rect = text.get_rect(center=(self.position["x"]+self.scale["x"]/2, self.position["y"]+self.scale["y"]/2))
+                text_rect = text.get_rect(center=(self.scale["x"]/2, self.scale["y"]/2))
                 presprite.blit(text, text_rect)
                 self.sprite = presprite
                 self.clicked = False
     def relsprite(self):
         font = pygame.font.Font(None, self.fontsize)
         if self.form == uiForm.button:
-            presprite = pygame.Surface((1000,1000), pygame.SRCALPHA)
-            pygame.draw.rect(presprite, self.color, (self.position["x"], self.position["y"], self.scale["x"], self.scale["y"]), 0, 10)
+            presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
+            pygame.draw.rect(presprite, self.color, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
             text = font.render(self.text, True, self.fontcolor)
-            text_rect = text.get_rect(center=(self.position["x"]+self.scale["x"]/2, self.position["y"]+self.scale["y"]/2))
+            text_rect = text.get_rect(center=(self.scale["x"]/2, self.scale["y"]/2))
             presprite.blit(text, text_rect)
             self.sprite = presprite
         if self.form == uiForm.panel:
-            presprite = pygame.Surface((1000,1000), pygame.SRCALPHA)
-            pygame.draw.rect(presprite, self.color, (self.position["x"], self.position["y"], self.scale["x"], self.scale["y"]), 0, 10)
+            presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
+            pygame.draw.rect(presprite, self.color, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
             text = font.render(self.text, True, self.fontcolor)
-            text_rect = text.get_rect(center=(self.position["x"]+self.scale["x"]/2, self.position["y"]+self.scale["y"]/2))
+            text_rect = text.get_rect(center=(self.scale["x"]/2, self.scale["y"]/2))
             presprite.blit(text, text_rect)
             self.sprite = presprite
 
@@ -164,7 +166,7 @@ class gameObject():
         presprite = pygame.Surface((500, 500), pygame.SRCALPHA)
         presprite.fill(pygame.SRCALPHA)
         if shape == "circle":
-            pygame.draw.circle(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (winx/2-25*scale, winy/2-25*scale), 25*scale)
+            pygame.draw.circle(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500/2-25*scale, 500/2-25*scale), 25*scale)
         elif shape == "mesh":
             # Load the original image
             img = pygame.image.load('player.png')
@@ -299,7 +301,7 @@ def enemy(self):
             if pdist < 350 and pdist > 100 or self.followingPlayer and pdist > 100:
 
                 # Allow enemy to shoot at player
-                if (time.time() - self.lastShotTime > 1):
+                if (time.time() - self.lastShotTime > 0.8):
                     shootsfx.play()
 
                     angle = self.angle
@@ -407,7 +409,10 @@ def playerBullet(self):
             if self.position["x"] > enemy.position["x"]-50 and self.position["x"] < enemy.position["x"]+50:
                 if self.position["y"] > enemy.position["y"]-50 and self.position["y"] < enemy.position["y"]+50:
                     if enemy in gameObjects:
+                        hitsfx.play()
                         enemy.hp -= 1
+                        enemy.xvel = self.xvel/3
+                        enemy.yvel = self.yvel/3
                         enemy.followingPlayer = True
                         enemy.gotoHome = False
                         if self in gameObjects:
@@ -434,7 +439,10 @@ def enemyBullet(self):
         if self.position["x"] > player.position["x"]-50 and self.position["x"] < player.position["x"]+50:
             if self.position["y"] > player.position["y"]-50 and self.position["y"] < player.position["y"]+50:
                 if player.hp > 0:
+                    hitsfx.play()
                     player.hp -= 1
+                    player.xvel = self.xvel / 3
+                    player.yvel = self.yvel / 3
                     if self in gameObjects:
                         gameObjects.pop(gameObjects.index(self))
 
@@ -464,6 +472,59 @@ def reset(self):
     yvel = 0
     gameObjects[len(gameObjects)-1].position = {"x": 250, "y": 250}
 
+
+titleScreen = True
+
+def play(self):
+    titleRenderer = uiHandler()
+
+    titleUI = [uiElement(uiForm.panel, (350, 50), (win.get_width()/2-350/2, 150), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Loading...", [leave])]
+
+    win.fill((0,0,0))
+
+    titleRenderer.render(titleUI)
+
+    pygame.display.flip()
+
+
+    global titleScreen
+    titleScreen = False
+
+
+
+def leave(self):
+    pygame.quit()
+    sys.exit()
+
+titleRenderer = uiHandler()
+titleUI = []
+
+titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Project: Omikron", []))
+titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, 75), (115,115,115), (255,255,255), 48, (45,45,45), "Play", [play]))
+titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, 150), (115,115,115), (255,255,255), 48, (45,45,45), "Quit", [leave]))
+
+while titleScreen:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            titleScreen = False
+            pygame.quit()
+            sys.exit()
+
+    titleUI[0].scale["x"] = win.get_size()[0]
+    titleUI[0].relsprite()
+
+    titleUI[1].position["x"] = (win.get_width()/2)-(350/2)
+    titleUI[1].frame()
+
+    titleUI[2].position["x"] = (win.get_width()/2)-(350/2)
+    titleUI[2].frame()
+
+    if titleScreen:
+        win.fill((0,0,0))
+        titleRenderer.render(titleUI)
+        pygame.display.flip()
+
+
 gameTimer = timer()
 gameCamera = camera()
 gameUiHandler = uiHandler()
@@ -473,8 +534,19 @@ gameObjects.append(gameObject(250, 250, "circle", 0, 5, [], gameTimer))
 
 
 """Spawn Planets"""
+
+minPlanetDist = 700
+
 for x in range(100):
     planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
+    nearestPlanet = 0
+    while nearestPlanet < minPlanetDist:
+        for obj in gameObjects:
+            dist = math.sqrt((planetPosition[0] - obj.position["x"])**2 + (planetPosition[1] - obj.position["y"])**2)
+            if dist > nearestPlanet:
+                nearestPlanet = dist
+        if nearestPlanet < minPlanetDist:
+            planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
     gameObjects.insert(0, gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer))
     for i in range(3):
         enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "mesh", 0, 1, [enemy], gameTimer)
@@ -493,10 +565,10 @@ uiElements = []
 
 """Create UI"""
 uiElements.append(uiElement(uiForm.panel, (75, 1000), (0, -5), (100, 100, 100), (0,0,0), 24, (45,45,45), "", []))
-uiElements.append(uiElement(uiForm.button, (100, 50), (5, 5), (145, 145, 145), (0,0,0), 24, (45,45,45), "Null", []))
-uiElements.append(uiElement(uiForm.button, (100, 50), (5, 35), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
-uiElements.append(uiElement(uiForm.button, (100, 50), (5, 65), (145, 145, 145), (0,0,0), 24, (45,45,45), "Settings", [openSettings]))
-uiElements.append(uiElement(uiForm.button, (100, 50), (5, 95), (145, 145, 145), (0,0,0), 24, (45,45,45), "Quit", [quitGame]))
+uiElements.append(uiElement(uiForm.button, (100, 35), (5, 45), (145, 145, 145), (0,0,0), 24, (45,45,45), "Null", []))
+uiElements.append(uiElement(uiForm.button, (100, 35), (5, 85), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
+uiElements.append(uiElement(uiForm.button, (100, 35), (5, 125), (145, 145, 145), (0,0,0), 24, (45,45,45), "Settings", [openSettings]))
+uiElements.append(uiElement(uiForm.button, (100, 35), (5, 165), (145, 145, 145), (0,0,0), 24, (45,45,45), "Quit", [quitGame]))
 
 uiElements[0].hidden = True
 uiElements[1].hidden = True
@@ -505,8 +577,8 @@ uiElements[3].hidden = True
 uiElements[4].hidden = True
 
 uiElements.append(uiElement(uiForm.panel, (75, 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "0", []))
-uiElements.append(uiElement(uiForm.panel, (500, 50), (win.get_width()/2, -5), (145,145,145), (255,255,255), 48, (45,45,45), "", []))
-uiElements.append(uiElement(uiForm.panel, (480, 25), (win.get_width()/2, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", []))
+uiElements.append(uiElement(uiForm.panel, (500, 55), (win.get_width()/2, -10), (145,145,145), (255,255,255), 48, (45,45,45), "", []))
+uiElements.append(uiElement(uiForm.panel, (480, 35), (win.get_width()/2, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", []))
 
 paused = False
 lastShotTime = 0
@@ -521,7 +593,7 @@ while running:
             if keys[pygame.K_ESCAPE]:
                 paused = not paused
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.1:
+            if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.6:
                 # Play sfx
                 shootsfx.play()
                 # Spawn a bullet
@@ -535,7 +607,7 @@ while running:
                 lastShotTime = time.time()
         if event.type == pygame.JOYBUTTONDOWN:
             if not paused:
-                if joystick.get_button(0) and time.time() - lastShotTime > 0.1:
+                if joystick.get_button(0) and time.time() - lastShotTime > 0.6:
                     # Play sfx
                     shootsfx.play()
                     # Spawn a bullet
@@ -577,10 +649,10 @@ while running:
 
     hpPercent = gameObjects[len(gameObjects)-1].hp / gameObjects[len(gameObjects)-1].maxhp
 
-    uiElements[6].position["x"] = (win.get_size()[0]/4)-uiElements[6].scale["x"]/4
+    uiElements[6].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2
     uiElements[6].relsprite()
 
-    uiElements[7].position["x"] = (win.get_size()[0]/4)-uiElements[6].scale["x"]/4+5
+    uiElements[7].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2+10
     uiElements[7].scale["x"] = 480*hpPercent
     uiElements[7].relsprite()
 
