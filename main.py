@@ -7,7 +7,7 @@ pygame.mixer.pre_init(22050, -16, 1, 512)  # Adjust buffer size as needed
 pygame.init()
 win = pygame.display.set_mode([500, 500], pygame.RESIZABLE)
 pygame.display.set_caption("Project: Omikron")
-icon = pygame.image.load("icon.png")
+icon = pygame.image.load("./resources/icon.png")
 pygame.display.set_icon(icon)
 pygame.font.init()
 pygame.joystick.init()
@@ -17,11 +17,11 @@ joystick = False
 if (pygame.joystick.get_count() > 0):
     joystick = pygame.joystick.Joystick(0)
 
-shootsfx = pygame.mixer.Sound("shoot.wav")
-selectsfx = pygame.mixer.Sound("select.wav")
-explodesfx = pygame.mixer.Sound("explosion.wav")
-hitsfx = pygame.mixer.Sound("hit.wav")
-pygame.mixer.music.load('Ambient.wav')
+shootsfx = pygame.mixer.Sound("./resources/shoot.wav")
+selectsfx = pygame.mixer.Sound("./resources/select.wav")
+explodesfx = pygame.mixer.Sound("./resources/explosion.wav")
+hitsfx = pygame.mixer.Sound("./resources/hit.wav")
+pygame.mixer.music.load('./resources/Ambient.wav')
 pygame.mixer.music.set_volume(0.3)
 shootsfx.set_volume(0.4)
 selectsfx.set_volume(0.4)
@@ -35,7 +35,6 @@ pygame.mixer.music.play(loops=-2)
 """Define all runtime variables"""
 xvel = 0
 yvel = 0
-
 
 class timer():
     def __init__(self):
@@ -66,7 +65,7 @@ class camera():
             self.runningCameraAction = False
         for obj in gameObjects:
             renderedPosition = [obj.rotated_rect.topleft[0]+obj.position["x"]+self.position["x"]+cameraOffset[0], obj.rotated_rect.topleft[1]+obj.position["y"]+self.position["y"]+cameraOffset[1]]
-            if (renderedPosition[0] > -500 and renderedPosition[0] < win.get_width()+500 and renderedPosition[1] > -500 and renderedPosition[1] < win.get_height()+500):
+            if (renderedPosition[0] > -1000 and renderedPosition[0] < win.get_width()+1000 and renderedPosition[1] > -1000 and renderedPosition[1] < win.get_height()+1000):
                 win.blit(obj.sprite, (renderedPosition[0], renderedPosition[1]))
                 obj.rendered = True
             else:
@@ -188,10 +187,31 @@ class gameObject():
         presprite = pygame.Surface((500, 500), pygame.SRCALPHA)
         presprite.fill(pygame.SRCALPHA)
         if shape == "circle":
-            pygame.draw.circle(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500/2-25*scale, 500/2-25*scale), 25*scale)
+            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
+            presprite.fill(pygame.SRCALPHA)
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/planets/planet.png')
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500-new_width/2, 500-new_width/2))
+            #pygame.draw.circle(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
         elif shape == "mesh":
             # Load the original image
-            img = pygame.image.load('player.png')
+            img = pygame.image.load('./resources/sprites/player.png')
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
+        elif shape == "bullet":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/bullet.png')
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -199,14 +219,14 @@ class gameObject():
             new_height = int(img.get_height() * 0.1)
             p = pygame.transform.scale(img, (new_width, new_height))
             presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
-        elif shape == "bullet":
+        elif shape == "enemy":
             # Load the original image
-            img = pygame.image.load('bullet.png')
+            img = pygame.image.load('./resources/sprites/enemy.png')
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
-            new_width = int(img.get_width() * 0.1)
-            new_height = int(img.get_height() * 0.1)
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
             p = pygame.transform.scale(img, (new_width, new_height))
             presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
         elif shape == "rect":
@@ -235,15 +255,15 @@ def playerScript(self):
         if keys[pygame.K_a]:
             self.xvel -= 10
 
-        if self.position["x"] < -5500:
-            self.position["x"] = -5500
-        if self.position["x"] > 5500:
-            self.position["x"] = 5500
+        if self.position["x"] < -7500:
+            self.position["x"] = -7500
+        if self.position["x"] > 7500:
+            self.position["x"] = 7500
 
-        if self.position["y"] < -5500:
-            self.position["y"] = -5500
-        if self.position["y"] > 5500:
-            self.position["y"] = 5500
+        if self.position["y"] < -7500:
+            self.position["y"] = -7500
+        if self.position["y"] > 7500:
+            self.position["y"] = 7500
 
 
         self.position["x"] += self.xvel * self.timer.deltaTime
@@ -288,6 +308,12 @@ def playerScript(self):
         # Temporary condition for when hp is 0
         if self.hp <= 0:
             self.hp = self.maxhp
+            global score
+            score -= 5
+            reset(self)
+
+        if score < 0:
+            gotoTitle(self)
 
 def enemy(self):
     global paused
@@ -562,7 +588,7 @@ while running:
 
     """Spawn Planets"""
 
-    minPlanetDist = 250
+    minPlanetDist = 1000
 
     for x in range(100):
         planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
@@ -577,7 +603,7 @@ while running:
                 planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
         gameObjects.insert(0, gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer))
         for i in range(3):
-            enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "mesh", 0, 1, [enemy], gameTimer)
+            enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "enemy", 0, 1, [enemy], gameTimer)
             #enemyObj.followingPlayer = False
             enemyObj.isEnemy = True
             enemyObj.gotoHome = True
@@ -588,6 +614,7 @@ while running:
     player.hp = 10
     player.maxhp = 10
     gameObjects.append(player)
+    score = 0
 
     uiElements = []
 
