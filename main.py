@@ -17,13 +17,15 @@ joystick = False
 if (pygame.joystick.get_count() > 0):
     joystick = pygame.joystick.Joystick(0)
 
-shootsfx = pygame.mixer.Sound("./resources/shoot.wav")
-selectsfx = pygame.mixer.Sound("./resources/select.wav")
-explodesfx = pygame.mixer.Sound("./resources/explosion.wav")
-hitsfx = pygame.mixer.Sound("./resources/hit.wav")
-pygame.mixer.music.load('./resources/Ambient.wav')
+shootsfx = pygame.mixer.Sound("./resources/audio/shoot.wav")
+selectsfx = pygame.mixer.Sound("./resources/audio/select.wav")
+explodesfx = pygame.mixer.Sound("./resources/audio/explosion.wav")
+hitsfx = pygame.mixer.Sound("./resources/audio/hit.wav")
+deathsfx = pygame.mixer.Sound("./resources/audio/death.wav")
+pygame.mixer.music.load('./resources/audio/Ambient.wav')
 pygame.mixer.music.set_volume(0.3)
 shootsfx.set_volume(0.4)
+deathsfx.set_volume(0.8)
 selectsfx.set_volume(0.4)
 explodesfx.set_volume(0.8)
 hitsfx.set_volume(0.8)
@@ -57,14 +59,14 @@ class camera():
         self.camActionType = 0
         self.camActionFramesLeft = 0
     def render(self, gameObjects):
-        cameraOffset = [0,0]
+        self.cameraOffset = [0,0]
         if self.runningCameraAction and self.camActionType == cameraAction.cameraShake:
-            cameraOffset = [random.randint(-10,10), random.randint(-10,10)]
+            self.cameraOffset = [random.randint(-10,10), random.randint(-10,10)]
             self.camActionFramesLeft -= 1
         if self.camActionFramesLeft <= 0:
             self.runningCameraAction = False
         for obj in gameObjects:
-            renderedPosition = [obj.rotated_rect.topleft[0]+obj.position["x"]+self.position["x"]+cameraOffset[0], obj.rotated_rect.topleft[1]+obj.position["y"]+self.position["y"]+cameraOffset[1]]
+            renderedPosition = [obj.rotated_rect.topleft[0]+obj.position["x"]+self.position["x"]+self.cameraOffset[0], obj.rotated_rect.topleft[1]+obj.position["y"]+self.position["y"]+self.cameraOffset[1]]
             if (renderedPosition[0] > -1000 and renderedPosition[0] < win.get_width()+1000 and renderedPosition[1] > -1000 and renderedPosition[1] < win.get_height()+1000):
                 win.blit(obj.sprite, (renderedPosition[0], renderedPosition[1]))
                 obj.rendered = True
@@ -75,7 +77,7 @@ class camera():
             self.runningCameraAction = True
             self.cameraActionStart = self.position
             self.camActionType = action
-            self.camActionFramesLeft = 10
+            self.camActionFramesLeft = 20
             
             
 class uiForm():
@@ -241,6 +243,89 @@ class gameObject():
     def frame(self):
         for script in self.scripts:
             script(self)
+
+class particleShape():
+    explosion = 0
+
+
+class particle():
+    def __init__(self, strt, v, l, s, d):
+        self.position = strt
+        self.velocity = v
+        self.shape = s
+        self.remainingTime = l
+        self.drag = d
+        self.frame = 0
+        self.frames = []
+        self.lagDelay = 0
+        self.animated = False
+        
+        presprite = pygame.Surface((500,500), pygame.SRCALPHA)
+        
+
+        if s == particleShape.explosion:
+            self.animated = True
+            frame1 = pygame.image.load("./resources/sprites/animated/explosion/frame0.png")
+            scalex = frame1.get_width()*0.3
+            scaley = frame1.get_height()*0.3
+            frame1 = pygame.transform.scale(frame1, (scalex, scaley))
+
+            frame2 = pygame.image.load("./resources/sprites/animated/explosion/frame1.png")
+            scalex = frame2.get_width()*0.3
+            scaley = frame2.get_height()*0.3
+            frame2 = pygame.transform.scale(frame2, (scalex, scaley))
+
+            self.frames = [frame1, frame2]
+
+            presprite.blit(frame1, (250,250))
+            #pygame.draw.circle(presprite, ((255, 123, 41)), (250,250), 7)
+        self.sprite = presprite
+    def anim_nextFrame(self):
+        if self.animated:
+            if self.frame > len(self.frames)-1:
+                self.frame = 0
+            presprite = pygame.Surface((500,500), pygame.SRCALPHA)
+            presprite.blit(self.frames[int(self.frame)], (250,250))
+            self.sprite = presprite
+            if self.lagDelay >= 10:
+                self.frame += 1
+                self.lagDelay = 0
+
+            for frame in self.frames:
+                scalex = frame.get_width()*0.98
+                scaley = frame.get_height()*0.98
+
+                self.frames[self.frames.index(frame)] = pygame.transform.scale(frame, (scalex, scaley))
+            self.lagDelay += 1
+
+class particleSystem():
+    def __init__(self, sceneCamera):
+        self.particles = []
+        self.cam = sceneCamera
+    def spawnParticle(self, start, velocity, lifetime, shape, drag):
+        particleObj = particle({"x":start[0],"y":start[1]}, {"x":velocity[0],"y":velocity[1]}, lifetime, shape, 1-drag)
+        self.particles.append(particleObj)
+    def render(self):
+        for particle in self.particles:
+            if particle.remainingTime > 0:
+                particle.remainingTime -= 1
+                particle.anim_nextFrame()
+                particle.position["x"] += particle.velocity["x"]
+                particle.position["y"] += particle.velocity["y"]
+                particle.velocity["x"] *= particle.drag
+                particle.velocity["y"] *= particle.drag
+
+                camx = self.cam.position["x"]
+                camy = self.cam.position["y"]
+
+                camoffx = self.cam.cameraOffset[0]
+                camoffy = self.cam.cameraOffset[1]
+
+                win.blit(particle.sprite, (particle.position["x"]+camx+camoffx, particle.position["y"]+camy+camoffy))
+            else:
+                self.particles.pop(self.particles.index(particle))
+        
+
 def playerScript(self):
     global paused
     if not paused:
@@ -310,6 +395,7 @@ def playerScript(self):
             self.hp = self.maxhp
             global score
             score -= 5
+            deathsfx.play()
             reset(self)
 
         if score < 0:
@@ -431,8 +517,13 @@ def enemy(self):
             # Add 1 to score (temporary)
             global score
             score += 1
+
+            for x in range(10):
+                particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (random.randint(-10, 10),random.randint(-10, 10)),100,particleShape.explosion, 0.02)
             
             explodesfx.play()
+
+            gameCamera.runCameraAction(cameraAction.cameraShake)
 
             # Add a 33% chance for killing enemy to heal player
             if random.randint(1,3) == 1 and gameObjects[len(gameObjects)-1].hp < gameObjects[len(gameObjects)-1].maxhp:
@@ -491,7 +582,7 @@ def enemyBullet(self):
                     player.hp -= 1
                     player.xvel = self.xvel / 3
                     player.yvel = self.yvel / 3
-                    gameCamera.runCameraAction(cameraAction.cameraShake)
+                    #gameCamera.runCameraAction(cameraAction.cameraShake)
                     if self in gameObjects:
                         gameObjects.pop(gameObjects.index(self))
 
@@ -580,6 +671,7 @@ while running:
 
     gameTimer = timer()
     gameCamera = camera()
+    particleManager = particleSystem(gameCamera)
     gameUiHandler = uiHandler()
     gameObjects = []
 
@@ -588,13 +680,17 @@ while running:
 
     """Spawn Planets"""
 
-    minPlanetDist = 1000
+    minPlanetDist = 500
 
     for x in range(100):
         planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
-        nearestPlanet = 1000000000000000
+        nearestPlanet = 999999999
+        for obj in gameObjects:
+                dist = math.sqrt((planetPosition[0] - obj.position["x"])**2 + (planetPosition[1] - obj.position["y"])**2)
+                if dist < nearestPlanet:
+                    nearestPlanet = dist
         while nearestPlanet < minPlanetDist:
-            nearestPlanet = 100000000000
+            nearestPlanet = 999999999
             for obj in gameObjects:
                 dist = math.sqrt((planetPosition[0] - obj.position["x"])**2 + (planetPosition[1] - obj.position["y"])**2)
                 if dist < nearestPlanet:
@@ -717,6 +813,7 @@ while running:
         win.fill((0,0,0))
 
         gameCamera.render(gameObjects)
+        particleManager.render()
 
         pygame.time.Clock().tick(6000)
         gameTimer.frame()
