@@ -3,6 +3,8 @@ import pygame, math, sys, time, random
 score = 0
 ingame = True
 
+globalMenuPressed = False
+
 pygame.mixer.pre_init(22050, -16, 1, 512)  # Adjust buffer size as needed
 pygame.init()
 win = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
@@ -136,14 +138,17 @@ class uiElement():
                 text_rect = text.get_rect(center=(self.scale["x"]/2, self.scale["y"]/2))
                 presprite.blit(text, text_rect)
                 self.sprite = presprite
+                
+                global globalMenuPressed
 
-                if pygame.mouse.get_pressed()[0] and not self.clicked or joystick.get_button(2) and not self.clicked:
+                if pygame.mouse.get_pressed()[0] or globalMenuPressed and not self.clicked:
                     selectsfx.play()
                     for event in self.onclick:
                         event(self)
                     self.clicked = True
-                
-                if not pygame.mouse.get_pressed()[0]:
+                    globalMenuPressed = False
+
+                if not pygame.mouse.get_pressed()[0] or not globalMenuPressed:
                     self.clicked = False
             else:
                 font = pygame.font.Font(None, self.fontsize)
@@ -578,7 +583,7 @@ def enemy(self):
             pygame.draw.rect(win, (155, 155, 155), (renderedPosition[0]-40, renderedPosition[1]-50, 80, 20), 0, 10)
             pygame.draw.rect(win, color, (renderedPosition[0]-35, renderedPosition[1]-45, 70*hpPercent, 10), 0, 10)
 
-        # Check if hp = 0 and remove object
+        # Enemy Death
         if self.hp <= 0 and self in gameObjects:
             # Add 1 to score (temporary)
             global inventory
@@ -597,6 +602,9 @@ def enemy(self):
             # Add a 33% chance for killing enemy to heal player
             if random.randint(1,3) == 1 and gameObjects[len(gameObjects)-1].hp < gameObjects[len(gameObjects)-1].maxhp:
                 gameObjects[len(gameObjects)-1].hp += 1
+            planet = enemyPlanets[self]
+            planetEnemies[planet].remove(self)
+            del enemyPlanets[self]
             gameObjects.pop(gameObjects.index(self)) # Remove enemy
 
 def playerBullet(self):
@@ -719,9 +727,11 @@ def leave(self):
     pygame.quit()
     sys.exit()
 running = True
+uiOpen = False
 while running: 
 
     """Title Screen"""
+    globalMenuPressed = False
     titleRenderer = uiHandler()
     titleUI = []
 
@@ -729,12 +739,53 @@ while running:
     titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2-75), (115,115,115), (255,255,255), 48, (45,45,45), "Play", [play]))
     titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2), (115,115,115), (255,255,255), 48, (45,45,45), "Quit", [leave]))
 
+    shownBtn = [btn for btn in titleUI if btn.form == uiForm.button and not btn.hidden]
+    cur_hovered = 0
+
     while titleScreen:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 titleScreen = False
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.JOYBUTTONDOWN:
+                if event.button == 14:
+                    globalMenuPressed = True
+
+                # Controller Menu Navigation
+                shownBtn = [btn for btn in titleUI if btn.form == uiForm.button and not btn.hidden]
+                if event.button == 11:
+                    try:
+                        if titleUI[titleUI.index(shownBtn[cur_hovered])] in shownBtn:
+                            cur_hovered -= 1
+                        else:
+                            cur_hovered = 0
+                    except:
+                        cur_hovered = 0
+                    if cur_hovered < 0:
+                        cur_hovered = len(shownBtn)-1
+
+                    for btn in shownBtn:
+                        if btn in titleUI:
+                            titleUI[titleUI.index(btn)].hovered = False
+
+                    titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
+                if event.button == 12:
+                    try:
+                        if titleUI[titleUI.index(shownBtn[cur_hovered])] in shownBtn:
+                            cur_hovered += 1
+                        else:
+                            cur_hovered = 0
+                    except:
+                        cur_hovered = 0
+                    if cur_hovered > len(shownBtn)-1:
+                        cur_hovered = 0
+
+                    for btn in shownBtn:
+                        if btn in titleUI:
+                            titleUI[titleUI.index(btn)].hovered = False
+
+                    titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
 
         titleUI[0].scale["x"] = win.get_size()[0]
         titleUI[0].relsprite()
@@ -753,6 +804,8 @@ while running:
 
     """Game"""
 
+    globalMenuPressed = False
+
     inventory = inventoryManager()
     inventory.init_item("Credit")
     inventory.init_item("Fuel Cell")
@@ -764,10 +817,14 @@ while running:
     gameUiHandler = uiHandler()
     gameObjects = []
 
-    gameObjects.append(gameObject(250, 250, "circle", 0, 5, [], gameTimer))
+    playerPlanet = gameObject(250, 250, "circle", 0, 5, [], gameTimer)
+    gameObjects.append(playerPlanet)
 
 
     """Spawn Planets"""
+
+    planetEnemies = {}
+    enemyPlanets = {}
 
     minPlanetDist = 500
 
@@ -786,13 +843,17 @@ while running:
                     nearestPlanet = dist
             if nearestPlanet < minPlanetDist:
                 planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
-        gameObjects.insert(0, gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer))
+        planet = gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer)
+        gameObjects.insert(0, planet)
+        planetEnemies[planet] = []
         for i in range(3):
             enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "enemy", 0, 1, [enemy], gameTimer)
             #enemyObj.followingPlayer = False
             enemyObj.isEnemy = True
             enemyObj.gotoHome = True
             enemyObj.home = {"x":planetPosition[0]+math.sin((360/3)*i)*10,"y":planetPosition[1]+math.cos((360/3)*i)*10}
+            planetEnemies[gameObjects[0]].append(enemyObj)
+            enemyPlanets[enemyObj] = gameObjects[0]
             gameObjects.append(enemyObj)
 
     player = gameObject(250, 250, "mesh", 0, 1, [playerScript], gameTimer)
@@ -846,11 +907,6 @@ while running:
 
     upgradeBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "FullHeal", [fullHeal])
 
-
-    upgradeBtn.hidden = True
-
-    shopbg.hidden = True # Hide shop ui by default
-
     uiElements.append(shopbg)
     uiElements.append(upgradeBtn)
 
@@ -862,7 +918,7 @@ while running:
     ingame = True
 
     shownBtn = [btn for btn in uiElements if btn.form == uiForm.button and not btn.hidden]
-    cur_hovered = uiElements.index(shownBtn[0])
+    cur_hovered = 0
 
     """Main Game Loop"""
     while ingame:
@@ -890,7 +946,7 @@ while running:
                     lastShotTime = time.time()
             if event.type == pygame.JOYBUTTONDOWN:
                 if not paused:
-                    if joystick.get_button(0) and time.time() - lastShotTime > 0.6:
+                    if event.button == 0 and time.time() - lastShotTime > 0.6:
                         # Play sfx
                         shootsfx.play()
                         # Spawn a bullet
@@ -902,25 +958,49 @@ while running:
                         bullet.angle = -angle
                         gameObjects.insert(len(gameObjects)-2, bullet)
                         lastShotTime = time.time()
-                if joystick.get_button(6):
+                if event.button == 6:
                     paused = not paused
+                    uiOpen = paused
+
+                if event.button == 14:
+                    globalMenuPressed = True
 
                 # Controller Menu Navigation
                 shownBtn = [btn for btn in uiElements if btn.form == uiForm.button and not btn.hidden]
-                if joystick.get_button(1):
-                    cur_hovered = shownBtn.index(uiElements[uiElements.index(cur_hovered)]) - 1
+                if event.button == 11:
+                    try:
+                        if uiElements[uiElements.index(shownBtn[cur_hovered])] in shownBtn:
+                            cur_hovered -= 1
+                        else:
+                            cur_hovered = 0
+                    except:
+                        cur_hovered = 0
                     if cur_hovered < 0:
                         cur_hovered = len(shownBtn)-1
-                    cur_hovered = uiElements.index(shownBtn[shownBtn.index(cur_hovered)])
-                if joystick.get_button(3):
-                    cur_hovered = shownBtn.index(uiElements[uiElements.index(cur_hovered)]) - 1
+
+                    for btn in shownBtn:
+                        if btn in uiElements:
+                            uiElements[uiElements.index(btn)].hovered = False
+
+                    uiElements[uiElements.index(shownBtn[cur_hovered])].hovered = True
+                if event.button == 12:
+                    try:
+                        if uiElements[uiElements.index(shownBtn[cur_hovered])] in shownBtn:
+                            cur_hovered += 1
+                        else:
+                            cur_hovered = 0
+                    except:
+                        cur_hovered = 0
                     if cur_hovered > len(shownBtn)-1:
                         cur_hovered = 0
-                    cur_hovered = uiElements.index(shownBtn[shownBtn.index(cur_hovered)])
 
-                for btn in shownBtn:
-                    btn.hovered = False
-                uiElements[cur_hovered].hovered = True
+                    for btn in shownBtn:
+                        if btn in uiElements:
+                            uiElements[uiElements.index(btn)].hovered = False
+
+                    uiElements[uiElements.index(shownBtn[cur_hovered])].hovered = True
+                
+                
 
         if paused:
             uiElements[0].hidden = False
@@ -942,22 +1022,28 @@ while running:
             pygame.mixer.music.set_volume(0.4)
 
         """Shop"""
-        planetRadius = 100
+        planetRadius = 150
 
-        planets = [obj for obj in gameObjects if obj.shape == "circle" and obj.rendered]
+        planets = [obj for obj in gameObjects if obj.shape == "circle" and obj.rendered and not obj == playerPlanet]
+        emptyPlanets = 0
         for planet in planets:
             player = gameObjects[len(gameObjects)-1]
-            pvx = planet.position["x"] - player.position["x"]
-            pvy = planet.position["y"] - player.position["y"]
+            pvx = player.position["x"] - planet.position["x"]
+            pvy = player.position["y"] - planet.position["y"]
 
             dist = math.sqrt(pvx**2 + pvy**2)
-
-            if dist < planetRadius:
-                uiElements[uiElements.index(shopbg)].hidden = False
-                uiElements[uiElements.index(upgradeBtn)].hidden = False
+            
+            if dist < planetRadius and planetEnemies[planet] == []:
+                if uiOpen:
+                    print("Opening UI")
+                    uiElements[uiElements.index(shopbg)].hidden = False
+                    uiElements[uiElements.index(upgradeBtn)].hidden = False
+                uiOpen = True
             else:
                 uiElements[uiElements.index(shopbg)].hidden = True
                 uiElements[uiElements.index(upgradeBtn)].hidden = True
+                uiOpen = False
+            
 
         # UI Updates
 
