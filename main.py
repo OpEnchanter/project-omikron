@@ -187,6 +187,7 @@ class gameObject():
         self.hp = 3
         self.maxhp = 3
         self.lastShotTime = 0
+        self.target_angle = 0
 
         presprite = pygame.Surface((500, 500), pygame.SRCALPHA)
         presprite.fill(pygame.SRCALPHA)
@@ -291,17 +292,12 @@ class particle():
                 if self.frame > len(self.frames)-1:
                     self.frame = 0
                 presprite = pygame.Surface((500,500), pygame.SRCALPHA)
-                presprite.blit(self.frames[int(self.frame)], (250,250))
+                curframe = self.frames[int(self.frame)]
+                presprite.blit(curframe, (250,250))
                 self.sprite = presprite
                 if self.lagDelay >= 10:
                     self.frame += 1
                     self.lagDelay = 0
-
-                for frame in self.frames:
-                    scalex = frame.get_width()*0.999
-                    scaley = frame.get_height()*0.999
-
-                    self.frames[self.frames.index(frame)] = pygame.transform.scale(frame, (scalex, scaley))
                 self.lagDelay += 1
             if self.shape == particleShape.shockwave:
                 presprite = pygame.Surface((500,500), pygame.SRCALPHA)
@@ -450,7 +446,7 @@ def enemy(self):
             if pdist < 350 and pdist > 100 or self.followingPlayer and pdist > 100:
 
                 # Allow enemy to shoot at player
-                if (time.time() - self.lastShotTime > 1):
+                if (time.time() - self.lastShotTime > 0.7 and self.angle > self.target_angle - 5 and self.angle < self.target_angle + 5):
                     shootsfx.play()
 
                     angle = self.angle
@@ -465,12 +461,24 @@ def enemy(self):
                 angle_rad = math.atan2(vy, vx)
                 angle_deg = math.degrees(angle_rad)
 
-                self.angle = angle_deg
+                self.target_angle = angle_deg
+                rotation_speed = 1  # Adjust this value to control the speed of rotation
+
+                angle_difference = (self.target_angle - self.angle) % 360
+                if angle_difference > 180:
+                    angle_difference -= 360
+
+                if abs(angle_difference) < rotation_speed:
+                    self.angle = self.target_angle
+                else:
+                    self.angle += rotation_speed * (1 if angle_difference > 0 else -1)
+
+                self.angle %= 360  # Ensure the angle stays within [0, 360)
 
                 self.xvel += vx/10
                 self.yvel += vy/10
 
-                self.sprite = pygame.transform.rotate(self.original_sprite, -angle_deg)
+                self.sprite = pygame.transform.rotate(self.original_sprite, -self.angle)
                 self.rotated_rect = self.sprite.get_rect(center=self.rect.center)
                 self.followingPlayer = True
             elif pdist < 100 and self.followingPlayer:
@@ -480,10 +488,24 @@ def enemy(self):
                 angle_rad = math.atan2(vy, vx)
                 angle_deg = math.degrees(angle_rad)
 
+                self.target_angle = angle_deg
+                rotation_speed = 1  # Adjust this value to control the speed of rotation
+
+                angle_difference = (self.target_angle - self.angle) % 360
+                if angle_difference > 180:
+                    angle_difference -= 360
+
+                if abs(angle_difference) < rotation_speed:
+                    self.angle = self.target_angle
+                else:
+                    self.angle += rotation_speed * (1 if angle_difference > 0 else -1)
+
+                self.angle %= 360  # Ensure the angle stays within [0, 360)
+
                 self.xvel += ivx
                 self.yvel += ivy
 
-                self.sprite = pygame.transform.rotate(self.original_sprite, -angle_deg)
+                self.sprite = pygame.transform.rotate(self.original_sprite, -self.angle)
                 self.rotated_rect = self.sprite.get_rect(center=self.rect.center)
                 self.followingPlayer = True
 
@@ -659,9 +681,9 @@ while running:
     titleRenderer = uiHandler()
     titleUI = []
 
-    titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Project: Omikron", []))
-    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, 75), (115,115,115), (255,255,255), 48, (45,45,45), "Play", [play]))
-    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, 150), (115,115,115), (255,255,255), 48, (45,45,45), "Quit", [leave]))
+    titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, win.get_height()/2-150), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Project: Omikron", []))
+    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2-75), (115,115,115), (255,255,255), 48, (45,45,45), "Play", [play]))
+    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2), (115,115,115), (255,255,255), 48, (45,45,45), "Quit", [leave]))
 
     while titleScreen:
         for event in pygame.event.get():
