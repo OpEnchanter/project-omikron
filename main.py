@@ -5,7 +5,8 @@ ingame = True
 
 pygame.mixer.pre_init(22050, -16, 1, 512)  # Adjust buffer size as needed
 pygame.init()
-win = pygame.display.set_mode([500, 500], pygame.RESIZABLE)
+win = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
+pygame.display.toggle_fullscreen()
 pygame.display.set_caption("Project: Omikron")
 icon = pygame.image.load("./resources/icon.png")
 pygame.display.set_icon(icon)
@@ -61,7 +62,8 @@ class camera():
     def render(self, gameObjects):
         self.cameraOffset = [0,0]
         if self.runningCameraAction and self.camActionType == cameraAction.cameraShake:
-            self.cameraOffset = [random.randint(-10,10), random.randint(-10,10)]
+            if self.camActionFramesLeft % 5 == 0:
+                self.cameraOffset = [random.randint(-10,10), random.randint(-10,10)]
             self.camActionFramesLeft -= 1
         if self.camActionFramesLeft <= 0:
             self.runningCameraAction = False
@@ -246,6 +248,7 @@ class gameObject():
 
 class particleShape():
     explosion = 0
+    shockwave = 1
 
 
 class particle():
@@ -279,24 +282,36 @@ class particle():
 
             presprite.blit(frame1, (250,250))
             #pygame.draw.circle(presprite, ((255, 123, 41)), (250,250), 7)
+        if s == particleShape.shockwave:
+            pygame.draw.circle(presprite, (255,0,0), (250, 250), 1, 5)
         self.sprite = presprite
     def anim_nextFrame(self):
         if self.animated:
-            if self.frame > len(self.frames)-1:
-                self.frame = 0
-            presprite = pygame.Surface((500,500), pygame.SRCALPHA)
-            presprite.blit(self.frames[int(self.frame)], (250,250))
-            self.sprite = presprite
-            if self.lagDelay >= 10:
-                self.frame += 1
-                self.lagDelay = 0
+            if self.shape == particleShape.explosion:
+                if self.frame > len(self.frames)-1:
+                    self.frame = 0
+                presprite = pygame.Surface((500,500), pygame.SRCALPHA)
+                presprite.blit(self.frames[int(self.frame)], (250,250))
+                self.sprite = presprite
+                if self.lagDelay >= 10:
+                    self.frame += 1
+                    self.lagDelay = 0
 
-            for frame in self.frames:
-                scalex = frame.get_width()*0.98
-                scaley = frame.get_height()*0.98
+                for frame in self.frames:
+                    scalex = frame.get_width()*0.999
+                    scaley = frame.get_height()*0.999
 
-                self.frames[self.frames.index(frame)] = pygame.transform.scale(frame, (scalex, scaley))
-            self.lagDelay += 1
+                    self.frames[self.frames.index(frame)] = pygame.transform.scale(frame, (scalex, scaley))
+                self.lagDelay += 1
+            if self.shape == particleShape.shockwave:
+                presprite = pygame.Surface((500,500), pygame.SRCALPHA)
+                presprite.blit(self.frames[int(self.frame)], (250,250))
+                pygame.draw.circle(presprite, (255,0,0), (250,250), (frame), 5)
+                self.sprite = presprite
+                if self.lagDelay >= 10:
+                    self.frame += 1
+                    self.lagDelay = 0
+                self.lagDelay += 1
 
 class particleSystem():
     def __init__(self, sceneCamera):
@@ -435,7 +450,7 @@ def enemy(self):
             if pdist < 350 and pdist > 100 or self.followingPlayer and pdist > 100:
 
                 # Allow enemy to shoot at player
-                if (time.time() - self.lastShotTime > 0.8):
+                if (time.time() - self.lastShotTime > 1):
                     shootsfx.play()
 
                     angle = self.angle
@@ -520,6 +535,7 @@ def enemy(self):
 
             for x in range(10):
                 particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (random.randint(-10, 10),random.randint(-10, 10)),100,particleShape.explosion, 0.02)
+            #particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (0,0), 100, particleShape.shockwave, 0)
             
             explodesfx.play()
 
