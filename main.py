@@ -117,6 +117,7 @@ class uiElement():
             text_rect = text.get_rect(center=(self.scale["x"]/2, self.scale["y"]/2))
             presprite.blit(text, text_rect)
             self.sprite = presprite
+            self.hovered = False
         if form == uiForm.panel:
             presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
             pygame.draw.rect(presprite, self.color, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
@@ -127,7 +128,7 @@ class uiElement():
     def frame(self):
         if self.form == uiForm.button and not self.hidden:
             mousex, mousey = pygame.mouse.get_pos()
-            if mousex > self.position["x"] and mousex < self.position["x"]+self.scale["x"] and mousey > self.position["y"] and mousey < self.position["y"]+self.scale["y"]:
+            if mousex > self.position["x"] and mousex < self.position["x"]+self.scale["x"] and mousey > self.position["y"] and mousey < self.position["y"]+self.scale["y"] or self.hovered:
                 font = pygame.font.Font(None, self.fontsize)
                 presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
                 pygame.draw.rect(presprite, self.hovercolor, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
@@ -136,7 +137,7 @@ class uiElement():
                 presprite.blit(text, text_rect)
                 self.sprite = presprite
 
-                if pygame.mouse.get_pressed()[0] and not self.clicked:
+                if pygame.mouse.get_pressed()[0] and not self.clicked or joystick.get_button(2) and not self.clicked:
                     selectsfx.play()
                     for event in self.onclick:
                         event(self)
@@ -860,6 +861,9 @@ while running:
     lastShotTime = 0
     ingame = True
 
+    shownBtn = [btn for btn in uiElements if btn.form == uiForm.button and not btn.hidden]
+    cur_hovered = uiElements.index(shownBtn[0])
+
     """Main Game Loop"""
     while ingame:
         for event in pygame.event.get():
@@ -900,6 +904,23 @@ while running:
                         lastShotTime = time.time()
                 if joystick.get_button(6):
                     paused = not paused
+
+                # Controller Menu Navigation
+                shownBtn = [btn for btn in uiElements if btn.form == uiForm.button and not btn.hidden]
+                if joystick.get_button(1):
+                    cur_hovered = shownBtn.index(uiElements[uiElements.index(cur_hovered)]) - 1
+                    if cur_hovered < 0:
+                        cur_hovered = len(shownBtn)-1
+                    cur_hovered = uiElements.index(shownBtn[shownBtn.index(cur_hovered)])
+                if joystick.get_button(3):
+                    cur_hovered = shownBtn.index(uiElements[uiElements.index(cur_hovered)]) - 1
+                    if cur_hovered > len(shownBtn)-1:
+                        cur_hovered = 0
+                    cur_hovered = uiElements.index(shownBtn[shownBtn.index(cur_hovered)])
+
+                for btn in shownBtn:
+                    btn.hovered = False
+                uiElements[cur_hovered].hovered = True
 
         if paused:
             uiElements[0].hidden = False
