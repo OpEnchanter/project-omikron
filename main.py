@@ -335,6 +335,24 @@ class particleSystem():
                 win.blit(particle.sprite, (particle.position["x"]+camx+camoffx, particle.position["y"]+camy+camoffy))
             else:
                 self.particles.pop(self.particles.index(particle))
+
+class inventoryManager():
+    def __init__(self):
+        self.inventory = {}
+    def init_item(self, name = str):
+        self.inventory[name] = {"amount":0}
+        print(f"Item, {name} initialized")
+    def add_item(self, item_name = str, ammt = int):
+        self.inventory[item_name]["amount"] += ammt
+        print(f"Added, {ammt} of {item_name} to inventory")
+    def rem_item(self, item_name = str, ammt = int):
+        if (self.inventory[item_name]["amount"] >= ammt):
+            self.inventory[item_name]["amount"] -= ammt
+            print(f"Removed {ammt} of {item_name}")
+            return True
+        else:
+            print(f"Unable to remove {ammt} of {item_name}")
+            return False
         
 
 def playerScript(self):
@@ -404,13 +422,13 @@ def playerScript(self):
         # Temporary condition for when hp is 0
         if self.hp <= 0:
             self.hp = self.maxhp
-            global score
-            score -= 5
-            deathsfx.play()
-            reset(self)
-
-        if score < 0:
-            gotoTitle(self)
+            global inventory
+            removeCreds = inventory.rem_item("Credit", 10)
+            if not removeCreds:
+                gotoTitle(self)
+            if removeCreds:
+                deathsfx.play()
+                reset(self)
 
 def enemy(self):
     global paused
@@ -562,8 +580,10 @@ def enemy(self):
         # Check if hp = 0 and remove object
         if self.hp <= 0 and self in gameObjects:
             # Add 1 to score (temporary)
-            global score
-            score += 1
+            global inventory
+            inventory.add_item("Credit", 1)
+            inventory.add_item("Metal", random.randint(3,7))
+            inventory.add_item("Fuel Cell", random.randint(0,2))
 
             for x in range(10):
                 particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (random.randint(-10, 10),random.randint(-10, 10)),100,particleShape.explosion, 0.02)
@@ -688,6 +708,7 @@ def leave(self):
 running = True
 while running: 
 
+    """Title Screen"""
     titleRenderer = uiHandler()
     titleUI = []
 
@@ -716,6 +737,13 @@ while running:
             titleRenderer.render(titleUI)
             pygame.display.flip()
 
+
+    """Game"""
+
+    inventory = inventoryManager()
+    inventory.init_item("Credit")
+    inventory.init_item("Fuel Cell")
+    inventory.init_item("Metal")
 
     gameTimer = timer()
     gameCamera = camera()
@@ -775,9 +803,32 @@ while running:
     uiElements[3].hidden = True
     uiElements[4].hidden = True
 
-    uiElements.append(uiElement(uiForm.panel, (75, 50), (0, 0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "0", []))
-    uiElements.append(uiElement(uiForm.panel, (500, 55), (win.get_width()/2, -10), (145,145,145), (255,255,255), 48, (45,45,45), "", []))
-    uiElements.append(uiElement(uiForm.panel, (480, 35), (win.get_width()/2, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", []))
+    credUi = uiElement(uiForm.panel, (75, 100), (100, -10), (145,145,145), (255,255,255), 48, (45,45,45), "0", [])
+    fuelUi = uiElement(uiForm.panel, (75, 100), (200, -10), (145,145,145), (255,255,255), 48, (45,45,45), "0", [])
+    metalUi = uiElement(uiForm.panel, (75, 100), (300, -10), (145,145,145), (255,255,255), 48, (45,45,45), "0", [])
+
+    uiElements.append(credUi)
+    uiElements.append(fuelUi)
+    uiElements.append(metalUi)
+
+    bg = uiElement(uiForm.panel, (500, 55), (win.get_width()/2, -10), (145,145,145), (255,255,255), 48, (45,45,45), "", [])
+    fg = uiElement(uiForm.panel, (480, 35), (win.get_width()/2, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", [])
+
+    hpui = [bg, fg]
+
+    metalIco = pygame.image.load("./resources/sprites/metal.png")
+    fuelIco = pygame.image.load("./resources/sprites/fuelcell.png")
+    credIco = pygame.image.load("./resources/sprites/cred.png")
+
+    icons = [credIco, fuelIco, metalIco]
+
+    for icon in icons:
+        xscale = icon.get_width()*0.3
+        yscale = icon.get_height()*0.3
+        icons[icons.index(icon)] = pygame.transform.scale(icon, (xscale, yscale))
+
+    uiElements.append(bg)
+    uiElements.append(fg)
 
     paused = False
     lastShotTime = 0
@@ -841,20 +892,26 @@ while running:
             #pygame.mixer.music.unpause()
             pygame.mixer.music.set_volume(0.4)
 
-        uiElements[5].text = str(score)
-        uiElements[5].relsprite()
+        uiElements[uiElements.index(credUi)].text = str(inventory.inventory["Credit"]["amount"])
+        uiElements[uiElements.index(credUi)].relsprite()
+
+        uiElements[uiElements.index(fuelUi)].text = str(inventory.inventory["Fuel Cell"]["amount"])
+        uiElements[uiElements.index(fuelUi)].relsprite()
+
+        uiElements[uiElements.index(metalUi)].text = str(inventory.inventory["Metal"]["amount"])
+        uiElements[uiElements.index(metalUi)].relsprite()
 
 
         # Player hp bar ui
 
         hpPercent = gameObjects[len(gameObjects)-1].hp / gameObjects[len(gameObjects)-1].maxhp
 
-        uiElements[6].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2
-        uiElements[6].relsprite()
+        uiElements[uiElements.index(hpui[0])].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2
+        uiElements[uiElements.index(hpui[0])].relsprite()
 
-        uiElements[7].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2+10
-        uiElements[7].scale["x"] = 480*hpPercent
-        uiElements[7].relsprite()
+        uiElements[uiElements.index(hpui[1])].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2+10
+        uiElements[uiElements.index(hpui[1])].scale["x"] = 480*hpPercent
+        uiElements[uiElements.index(hpui[1])].relsprite()
 
         #inCombat = any(obj for obj in gameObjects if obj.followingPlayer == True)
 
@@ -872,6 +929,10 @@ while running:
             elem.frame()
 
         gameUiHandler.render(uiElements)
+
+        win.blit(icons[0], (135,65))
+        win.blit(icons[1], (235,65))
+        win.blit(icons[2], (335,65))
 
         pygame.display.flip()
 
