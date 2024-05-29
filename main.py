@@ -682,6 +682,18 @@ def reset(self):
     yvel = 0
     gameObjects[len(gameObjects)-1].position = {"x": 250, "y": 250}
 
+def fullHeal(self):
+    global inventory
+    fuelcell = inventory.rem_item("Fuel Cell", 1)
+    credit = inventory.rem_item("Credit", 5)
+    if fuelcell and credit:
+        player = gameObjects[len(gameObjects)-1]
+        player.hp = player.maxhp
+    else:
+        if fuelcell:
+            inventory.add_item("Fuel Cell", 1)
+        if credit:
+            inventory.add_item("Credit", 5)
 
 titleScreen = True
 
@@ -827,12 +839,28 @@ while running:
         yscale = icon.get_height()*0.3
         icons[icons.index(icon)] = pygame.transform.scale(icon, (xscale, yscale))
 
+    """Initialize Shop UI Elements"""
+
+    shopbg = uiElement(uiForm.panel, (500, 500), (win.get_width()/2-250, win.get_height()/2-250), (145,145,145), (255,255,255), 48, (45,45,45), "", [])
+
+    upgradeBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "FullHeal", [fullHeal])
+
+
+    upgradeBtn.hidden = True
+
+    shopbg.hidden = True # Hide shop ui by default
+
+    uiElements.append(shopbg)
+    uiElements.append(upgradeBtn)
+
     uiElements.append(bg)
     uiElements.append(fg)
 
     paused = False
     lastShotTime = 0
     ingame = True
+
+    """Main Game Loop"""
     while ingame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -891,6 +919,26 @@ while running:
 
             #pygame.mixer.music.unpause()
             pygame.mixer.music.set_volume(0.4)
+
+        """Shop"""
+        planetRadius = 100
+
+        planets = [obj for obj in gameObjects if obj.shape == "circle" and obj.rendered]
+        for planet in planets:
+            player = gameObjects[len(gameObjects)-1]
+            pvx = planet.position["x"] - player.position["x"]
+            pvy = planet.position["y"] - player.position["y"]
+
+            dist = math.sqrt(pvx**2 + pvy**2)
+
+            if dist < planetRadius:
+                uiElements[uiElements.index(shopbg)].hidden = False
+                uiElements[uiElements.index(upgradeBtn)].hidden = False
+            else:
+                uiElements[uiElements.index(shopbg)].hidden = True
+                uiElements[uiElements.index(upgradeBtn)].hidden = True
+
+        # UI Updates
 
         uiElements[uiElements.index(credUi)].text = str(inventory.inventory["Credit"]["amount"])
         uiElements[uiElements.index(credUi)].relsprite()
