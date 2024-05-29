@@ -415,6 +415,8 @@ def playerScript(self):
 def enemy(self):
     global paused
     if not paused and self.rendered:
+
+        """Enemy AI"""
         winx, winy = win.get_size()
 
         self.position["y"] += self.yvel * self.timer.deltaTime
@@ -431,22 +433,28 @@ def enemy(self):
 
         hdist = math.sqrt(hvx**2 + hvy**2)
 
+        px = gameObjects[len(gameObjects)-1].position["x"]
+        py = gameObjects[len(gameObjects)-1].position["y"]
+        
+        vx = px-self.position["x"]
+        vy = py-self.position["y"]
+
+        pdist = math.sqrt(vx**2 + vy**2)
+
         if hdist < 10 and self.gotoHome:
             self.gotoHome = False
+        
+        if pdist > 350 and pdist < 680 and not self.followingPlayer:
+            angle_rad = math.atan2(vy, vx)
+            angle_deg = math.degrees(angle_rad)
 
+            self.angle = angle_deg
         if hdist < 1750 and not self.gotoHome:
-            px = gameObjects[len(gameObjects)-1].position["x"]
-            py = gameObjects[len(gameObjects)-1].position["y"]
-            
-            vx = px-self.position["x"]
-            vy = py-self.position["y"]
-
-            pdist = math.sqrt(vx**2 + vy**2)
 
             if pdist < 350 and pdist > 100 or self.followingPlayer and pdist > 100:
 
                 # Allow enemy to shoot at player
-                if (time.time() - self.lastShotTime > 0.7 and self.angle > self.target_angle - 5 and self.angle < self.target_angle + 5):
+                if (time.time() - self.lastShotTime > 1 and self.angle > self.target_angle - 5 and self.angle < self.target_angle + 5):
                     shootsfx.play()
 
                     angle = self.angle
@@ -527,6 +535,8 @@ def enemy(self):
             self.followingPlayer = False
             self.xvel = hvx
             self.yvel = hvy
+
+        """Enemy HP Bar"""
 
         # Draw health bar
         high_hp = (43, 255, 0)
