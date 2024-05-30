@@ -848,6 +848,7 @@ while running:
                 planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
         planet = gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer)
         planet.openShop = False
+        planet.popup = False
         gameObjects.insert(0, planet)
         planetEnemies[planet] = []
         for i in range(3):
@@ -916,6 +917,12 @@ while running:
 
     uiElements.append(bg)
     uiElements.append(fg)
+
+    keybindPopup = uiElement(uiForm.panel, (50, 50), (0,0), (145,145,145), (255,255,255), 48, (45,45,45), "E", [])
+
+    keybindPopup.hidden = True
+
+    uiElements.insert(5, keybindPopup)
 
     paused = False
     lastShotTime = 0
@@ -1043,6 +1050,13 @@ while running:
                 print("New Planet Cleared")
             
             keys = pygame.key.get_pressed()
+            if dist < planetRadius and planetEnemies[planet] == False:
+                planet.popup = True
+                uiElements[uiElements.index(keybindPopup)].position["x"] = planet.position["x"] + gameCamera.position["x"] - 25 
+                uiElements[uiElements.index(keybindPopup)].position["y"] = planet.position["y"] + gameCamera.position["y"] - 25
+            else:
+                planet.popup = False
+
             if planet.openShop and dist > planetRadius or planet.openShop and openShop:
                 uiOpen = False
                 planet.openShop = False
@@ -1057,6 +1071,11 @@ while running:
         else:
             uiElements[uiElements.index(shopbg)].hidden = True
             uiElements[uiElements.index(upgradeBtn)].hidden = True
+
+        if any(planet for planet in planets if planet.popup):
+            uiElements[uiElements.index(keybindPopup)].hidden = False
+        else:
+            uiElements[uiElements.index(keybindPopup)].hidden = True
         # UI Updates
 
         uiElements[uiElements.index(credUi)].text = str(inventory.inventory["Credit"]["amount"])
