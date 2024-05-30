@@ -10,7 +10,7 @@ pygame.init()
 win = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
 pygame.display.toggle_fullscreen()
 pygame.display.set_caption("Project: Omikron")
-icon = pygame.image.load("./resources/icon.png")
+icon = pygame.image.load("./resources/icon.png").convert_alpha()
 pygame.display.set_icon(icon)
 pygame.font.init()
 pygame.joystick.init()
@@ -201,7 +201,7 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet.png')
+            img = pygame.image.load('./resources/sprites/planets/planet.png').convert_alpha()
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -212,7 +212,7 @@ class gameObject():
             #pygame.draw.circle(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
         elif shape == "mesh":
             # Load the original image
-            img = pygame.image.load('./resources/sprites/player.png')
+            img = pygame.image.load('./resources/sprites/player.png').convert_alpha()
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -222,7 +222,7 @@ class gameObject():
             presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
         elif shape == "bullet":
             # Load the original image
-            img = pygame.image.load('./resources/sprites/bullet.png')
+            img = pygame.image.load('./resources/sprites/bullet.png').convert_alpha()
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -232,7 +232,7 @@ class gameObject():
             presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
         elif shape == "enemy":
             # Load the original image
-            img = pygame.image.load('./resources/sprites/enemy.png')
+            img = pygame.image.load('./resources/sprites/enemy.png').convert_alpha()
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -275,12 +275,12 @@ class particle():
 
         if s == particleShape.explosion:
             self.animated = True
-            frame1 = pygame.image.load("./resources/sprites/animated/explosion/frame0.png")
+            frame1 = pygame.image.load("./resources/sprites/animated/explosion/frame0.png").convert_alpha()
             scalex = frame1.get_width()*0.3
             scaley = frame1.get_height()*0.3
             frame1 = pygame.transform.scale(frame1, (scalex, scaley))
 
-            frame2 = pygame.image.load("./resources/sprites/animated/explosion/frame1.png")
+            frame2 = pygame.image.load("./resources/sprites/animated/explosion/frame1.png").convert_alpha()
             scalex = frame2.get_width()*0.3
             scaley = frame2.get_height()*0.3
             frame2 = pygame.transform.scale(frame2, (scalex, scaley))
@@ -598,10 +598,6 @@ def enemy(self):
             explodesfx.play()
 
             gameCamera.runCameraAction(cameraAction.cameraShake)
-
-            # Add a 33% chance for killing enemy to heal player
-            if random.randint(1,3) == 1 and gameObjects[len(gameObjects)-1].hp < gameObjects[len(gameObjects)-1].maxhp:
-                gameObjects[len(gameObjects)-1].hp += 1
             planet = enemyPlanets[self]
             planetEnemies[planet].remove(self)
             del enemyPlanets[self]
@@ -698,7 +694,7 @@ def fullHeal(self):
         fuelcell = inventory.rem_item("Fuel Cell", 1)
         credit = inventory.rem_item("Credit", 5)
         if fuelcell and credit:
-            player.hp += 2
+            player.hp += 5
             if player.hp > player.maxhp:
                 player.hp = player.maxhp
         else:
@@ -706,6 +702,22 @@ def fullHeal(self):
                 inventory.add_item("Fuel Cell", 1)
             if credit:
                 inventory.add_item("Credit", 5)
+
+def hpUpgrade(self):
+    player = gameObjects[len(gameObjects)-1]
+    global inventory
+    fuelcell = inventory.rem_item("Fuel Cell", 3)
+    credit = inventory.rem_item("Credit", 7)
+    metal = inventory.rem_item("Metal", 20)
+    if fuelcell and credit and metal:
+        player.maxhp += 1
+    else:
+        if fuelcell:
+            inventory.add_item("Fuel Cell", 3)
+        if credit:
+            inventory.add_item("Credit", 7)
+        if metal:
+            inventory.add_item("Metal", 20)
 
 titleScreen = True
 
@@ -772,7 +784,10 @@ while running:
                         if btn in titleUI:
                             titleUI[titleUI.index(btn)].hovered = False
 
-                    titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
+                    try:
+                        titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
+                    except:
+                        pass
                 if event.button == 12:
                     try:
                         if titleUI[titleUI.index(shownBtn[cur_hovered])] in shownBtn:
@@ -787,8 +802,10 @@ while running:
                     for btn in shownBtn:
                         if btn in titleUI:
                             titleUI[titleUI.index(btn)].hovered = False
-
-                    titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
+                    try:
+                        titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
+                    except:
+                        pass
 
         titleUI[0].scale["x"] = win.get_size()[0]
         titleUI[0].relsprite()
@@ -898,9 +915,9 @@ while running:
 
     hpui = [bg, fg]
 
-    metalIco = pygame.image.load("./resources/sprites/metal.png")
-    fuelIco = pygame.image.load("./resources/sprites/fuelcell.png")
-    credIco = pygame.image.load("./resources/sprites/cred.png")
+    metalIco = pygame.image.load("./resources/sprites/metal.png").convert_alpha()
+    fuelIco = pygame.image.load("./resources/sprites/fuelcell.png").convert_alpha()
+    credIco = pygame.image.load("./resources/sprites/cred.png").convert_alpha()
 
     icons = [credIco, fuelIco, metalIco]
 
@@ -913,15 +930,28 @@ while running:
 
     shopbg = uiElement(uiForm.panel, (500, 500), (win.get_width()/2-250, win.get_height()/2-250), (145,145,145), (255,255,255), 48, (45,45,45), "", [])
 
-    upgradeBtn = uiElement(uiForm.button, (240, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "FullHeal", [fullHeal])
+    upgradeBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "Heal 5 HP     Price: 5C 1F", [fullHeal])
+    upgradeHpBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-200), (125, 125, 125), (0,0,0), 24, (45,45,45), "+1 MaxHP    Price: 7C 3F 20M", [hpUpgrade])
 
     uiElements.append(shopbg)
     uiElements.append(upgradeBtn)
+    uiElements.append(upgradeHpBtn)
 
     uiElements.append(bg)
     uiElements.append(fg)
 
-    keybindPopup = uiElement(uiForm.panel, (50, 50), (0,0), (145,145,145), (255,255,255), 48, (45,45,45), "E", [])
+    keybindPopup = uiElement(uiForm.panel, (200, 200), (0,0), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "", [])
+
+    keybindIco = pygame.image.load("./resources/sprites/key.png").convert_alpha()
+    if joystick != False:
+        keybindIco = pygame.image.load("./resources/sprites/controllerkey.png").convert_alpha()
+
+    icoWidth = keybindIco.get_width() * 0.5
+    icoHeight = keybindIco.get_height() * 0.5
+
+    keybindIco = pygame.transform.scale(keybindIco, (icoWidth, icoHeight))
+
+    keybindPopup.sprite.blit(keybindIco, (100-icoWidth, 100-icoHeight))
 
     keybindPopup.hidden = True
 
@@ -949,7 +979,7 @@ while running:
                 if keys[pygame.K_e]:
                     openShop = True
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.6:
+                if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.3:
                     # Play sfx
                     shootsfx.play()
                     # Spawn a bullet
@@ -963,7 +993,7 @@ while running:
                     lastShotTime = time.time()
             if event.type == pygame.JOYBUTTONDOWN:
                 if not paused:
-                    if event.button == 0 and time.time() - lastShotTime > 0.6:
+                    if event.button == 0 and time.time() - lastShotTime > 0.3:
                         # Play sfx
                         shootsfx.play()
                         # Spawn a bullet
@@ -982,6 +1012,9 @@ while running:
                 if event.button == 14:
                     globalMenuPressed = True
 
+                if event.button == 3:
+                    openShop = True
+
                 # Controller Menu Navigation
                 shownBtn = [btn for btn in uiElements if btn.form == uiForm.button and not btn.hidden]
                 if event.button == 11:
@@ -999,7 +1032,10 @@ while running:
                         if btn in uiElements:
                             uiElements[uiElements.index(btn)].hovered = False
 
-                    uiElements[uiElements.index(shownBtn[cur_hovered])].hovered = True
+                    try:
+                        uiElements[uiElements.index(shownBtn[cur_hovered])].hovered = True
+                    except:
+                        pass
                 if event.button == 12:
                     try:
                         if uiElements[uiElements.index(shownBtn[cur_hovered])] in shownBtn:
@@ -1014,8 +1050,10 @@ while running:
                     for btn in shownBtn:
                         if btn in uiElements:
                             uiElements[uiElements.index(btn)].hovered = False
-
-                    uiElements[uiElements.index(shownBtn[cur_hovered])].hovered = True
+                    try:
+                        uiElements[uiElements.index(shownBtn[cur_hovered])].hovered = True
+                    except:
+                        pass
                 
 
         if paused:
@@ -1055,8 +1093,8 @@ while running:
             keys = pygame.key.get_pressed()
             if dist < planetRadius and planetEnemies[planet] == False:
                 planet.popup = True
-                uiElements[uiElements.index(keybindPopup)].position["x"] = planet.position["x"] + gameCamera.position["x"] - 25 
-                uiElements[uiElements.index(keybindPopup)].position["y"] = planet.position["y"] + gameCamera.position["y"] - 25
+                uiElements[uiElements.index(keybindPopup)].position["x"] = planet.position["x"] + gameCamera.position["x"] - icoWidth*0.75
+                uiElements[uiElements.index(keybindPopup)].position["y"] = planet.position["y"] + gameCamera.position["y"] - icoHeight*0.75
             else:
                 planet.popup = False
 
@@ -1071,9 +1109,11 @@ while running:
         if any(planet for planet in planets if planet.openShop):
             uiElements[uiElements.index(shopbg)].hidden = False
             uiElements[uiElements.index(upgradeBtn)].hidden = False
+            uiElements[uiElements.index(upgradeHpBtn)].hidden = False
         else:
             uiElements[uiElements.index(shopbg)].hidden = True
             uiElements[uiElements.index(upgradeBtn)].hidden = True
+            uiElements[uiElements.index(upgradeHpBtn)].hidden = True
 
         if any(planet for planet in planets if planet.popup):
             uiElements[uiElements.index(keybindPopup)].hidden = False
