@@ -7,8 +7,8 @@ globalMenuPressed = False
 
 pygame.mixer.pre_init(22050, -16, 1, 512)  # Adjust buffer size as needed
 pygame.init()
-win = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
-pygame.display.toggle_fullscreen()
+win = pygame.display.set_mode([500, 500], pygame.RESIZABLE)
+#pygame.display.toggle_fullscreen()
 pygame.display.set_caption("Project: Omikron")
 icon = pygame.image.load("./resources/icon.png")
 pygame.display.set_icon(icon)
@@ -804,7 +804,12 @@ while running:
 
     """Game"""
 
+    planetEnemies = {}
+    enemyPlanets = {}
+
     globalMenuPressed = False
+
+    shopOpen = False
 
     inventory = inventoryManager()
     inventory.init_item("Credit")
@@ -818,13 +823,11 @@ while running:
     gameObjects = []
 
     playerPlanet = gameObject(250, 250, "circle", 0, 5, [], gameTimer)
+    planetEnemies[playerPlanet] = []
     gameObjects.append(playerPlanet)
 
 
     """Spawn Planets"""
-
-    planetEnemies = {}
-    enemyPlanets = {}
 
     minPlanetDist = 500
 
@@ -844,6 +847,7 @@ while running:
             if nearestPlanet < minPlanetDist:
                 planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
         planet = gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer)
+        planet.openShop = False
         gameObjects.insert(0, planet)
         planetEnemies[planet] = []
         for i in range(3):
@@ -919,6 +923,7 @@ while running:
 
     shownBtn = [btn for btn in uiElements if btn.form == uiForm.button and not btn.hidden]
     cur_hovered = 0
+    emptyPlanets = []
 
     """Main Game Loop"""
     while ingame:
@@ -1024,34 +1029,35 @@ while running:
         """Shop"""
         planetRadius = 150
 
-        planets = [obj for obj in gameObjects if obj.shape == "circle" and obj.rendered and not obj == playerPlanet]
-        emptyPlanets = 0
+        planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
         for planet in planets:
             player = gameObjects[len(gameObjects)-1]
             pvx = player.position["x"] - planet.position["x"]
             pvy = player.position["y"] - planet.position["y"]
 
             dist = math.sqrt(pvx**2 + pvy**2)
+
+            if planetEnemies[planet] == []:
+                planetEnemies[planet] = False
+                print("New Planet Cleared")
+                emptyPlanets.append(planet)
             
-            if dist < planetRadius and planetEnemies[planet] == []:
-                if uiOpen:
-                    print("Opening UI")
-                    uiElements[uiElements.index(shopbg)].hidden = False
-                    uiElements[uiElements.index(upgradeBtn)].hidden = False
+            if dist < planetRadius and planetEnemies[planet] == False:
+                planet.openShop = True
                 uiOpen = True
             else:
-                uiElements[uiElements.index(shopbg)].hidden = True
-                uiElements[uiElements.index(upgradeBtn)].hidden = True
                 uiOpen = False
-            
-
+                planet.openShop = False
+        if any(planet for planet in planets if planet.openShop):
+            uiElements[uiElements.index(shopbg)].hidden = False
+            uiElements[uiElements.index(upgradeBtn)].hidden = False
+        else:
+            uiElements[uiElements.index(shopbg)].hidden = True
+            uiElements[uiElements.index(upgradeBtn)].hidden = True
         # UI Updates
 
         uiElements[uiElements.index(credUi)].text = str(inventory.inventory["Credit"]["amount"])
         uiElements[uiElements.index(credUi)].relsprite()
-
-        uiElements[uiElements.index(fuelUi)].text = str(inventory.inventory["Fuel Cell"]["amount"])
-        uiElements[uiElements.index(fuelUi)].relsprite()
 
         uiElements[uiElements.index(metalUi)].text = str(inventory.inventory["Metal"]["amount"])
         uiElements[uiElements.index(metalUi)].relsprite()
