@@ -7,8 +7,8 @@ globalMenuPressed = False
 
 pygame.mixer.pre_init(22050, -16, 1, 512)  # Adjust buffer size as needed
 pygame.init()
-win = pygame.display.set_mode([500, 500], pygame.RESIZABLE)
-#pygame.display.toggle_fullscreen()
+win = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
+pygame.display.toggle_fullscreen()
 pygame.display.set_caption("Project: Omikron")
 icon = pygame.image.load("./resources/icon.png")
 pygame.display.set_icon(icon)
@@ -923,7 +923,7 @@ while running:
 
     shownBtn = [btn for btn in uiElements if btn.form == uiForm.button and not btn.hidden]
     cur_hovered = 0
-    emptyPlanets = []
+    openShop = False
 
     """Main Game Loop"""
     while ingame:
@@ -936,6 +936,8 @@ while running:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_ESCAPE]:
                     paused = not paused
+                if keys[pygame.K_e]:
+                    openShop = True
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.6:
                     # Play sfx
@@ -1040,14 +1042,16 @@ while running:
             if planetEnemies[planet] == []:
                 planetEnemies[planet] = False
                 print("New Planet Cleared")
-                emptyPlanets.append(planet)
             
-            if dist < planetRadius and planetEnemies[planet] == False:
-                planet.openShop = True
-                uiOpen = True
-            else:
+            keys = pygame.key.get_pressed()
+            if planet.openShop and dist > planetRadius or planet.openShop and openShop:
                 uiOpen = False
                 planet.openShop = False
+                openShop = False
+            if dist < planetRadius and planetEnemies[planet] == False and openShop:
+                planet.openShop = True
+                uiOpen = True
+                openShop = False
         if any(planet for planet in planets if planet.openShop):
             uiElements[uiElements.index(shopbg)].hidden = False
             uiElements[uiElements.index(upgradeBtn)].hidden = False
@@ -1058,6 +1062,9 @@ while running:
 
         uiElements[uiElements.index(credUi)].text = str(inventory.inventory["Credit"]["amount"])
         uiElements[uiElements.index(credUi)].relsprite()
+
+        uiElements[uiElements.index(fuelUi)].text = str(inventory.inventory["Fuel Cell"]["amount"])
+        uiElements[uiElements.index(fuelUi)].relsprite()
 
         uiElements[uiElements.index(metalUi)].text = str(inventory.inventory["Metal"]["amount"])
         uiElements[uiElements.index(metalUi)].relsprite()
