@@ -591,7 +591,7 @@ def enemy(self):
             inventory.add_item("Metal", random.randint(3,7))
             inventory.add_item("Fuel Cell", random.randint(0,2))
 
-            for x in range(10):
+            for x in range(5):
                 particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (random.randint(-10, 10),random.randint(-10, 10)),100,particleShape.explosion, 0.02)
             #particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (0,0), 100, particleShape.shockwave, 0)
             
@@ -692,17 +692,20 @@ def reset(self):
     gameObjects[len(gameObjects)-1].position = {"x": 250, "y": 250}
 
 def fullHeal(self):
-    global inventory
-    fuelcell = inventory.rem_item("Fuel Cell", 1)
-    credit = inventory.rem_item("Credit", 5)
-    if fuelcell and credit:
-        player = gameObjects[len(gameObjects)-1]
-        player.hp = player.maxhp
-    else:
-        if fuelcell:
-            inventory.add_item("Fuel Cell", 1)
-        if credit:
-            inventory.add_item("Credit", 5)
+    player = gameObjects[len(gameObjects)-1]
+    if player.hp < player.maxhp:
+        global inventory
+        fuelcell = inventory.rem_item("Fuel Cell", 1)
+        credit = inventory.rem_item("Credit", 5)
+        if fuelcell and credit:
+            player.hp += 2
+            if player.hp > player.maxhp:
+                player.hp = player.maxhp
+        else:
+            if fuelcell:
+                inventory.add_item("Fuel Cell", 1)
+            if credit:
+                inventory.add_item("Credit", 5)
 
 titleScreen = True
 
@@ -910,7 +913,7 @@ while running:
 
     shopbg = uiElement(uiForm.panel, (500, 500), (win.get_width()/2-250, win.get_height()/2-250), (145,145,145), (255,255,255), 48, (45,45,45), "", [])
 
-    upgradeBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "FullHeal", [fullHeal])
+    upgradeBtn = uiElement(uiForm.button, (240, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "FullHeal", [fullHeal])
 
     uiElements.append(shopbg)
     uiElements.append(upgradeBtn)
