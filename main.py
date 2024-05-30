@@ -25,7 +25,7 @@ selectsfx = pygame.mixer.Sound("./resources/audio/select.wav")
 explodesfx = pygame.mixer.Sound("./resources/audio/explosion.wav")
 hitsfx = pygame.mixer.Sound("./resources/audio/hit.wav")
 deathsfx = pygame.mixer.Sound("./resources/audio/death.wav")
-pygame.mixer.music.load('./resources/audio/Ambient.wav')
+pygame.mixer.music.load('./resources/audio/Omikron.wav')
 pygame.mixer.music.set_volume(0.3)
 shootsfx.set_volume(0.4)
 deathsfx.set_volume(0.8)
@@ -1006,7 +1006,6 @@ while running:
                             uiElements[uiElements.index(btn)].hovered = False
 
                     uiElements[uiElements.index(shownBtn[cur_hovered])].hovered = True
-                
                 
 
         if paused:
