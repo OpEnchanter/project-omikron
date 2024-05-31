@@ -719,6 +719,13 @@ def hpUpgrade(self):
         if metal:
             inventory.add_item("Metal", 20)
 
+def buyBullets(self):
+    global inventory
+    metal = inventory.rem_item("Metal", 20)
+    if metal:
+        global bullets
+        bullets += 20
+
 titleScreen = True
 
 def play(self):
@@ -831,6 +838,8 @@ while running:
 
     shopOpen = False
 
+    bullets = 50
+
     inventory = inventoryManager()
     inventory.init_item("Credit")
     inventory.init_item("Fuel Cell")
@@ -890,11 +899,11 @@ while running:
     uiElements = []
 
     """Create UI"""
-    uiElements.append(uiElement(uiForm.panel, (75, 1000), (0, -5), (100, 100, 100), (0,0,0), 24, (45,45,45), "", []))
-    uiElements.append(uiElement(uiForm.button, (100, 35), (5, 45), (145, 145, 145), (0,0,0), 24, (45,45,45), "Null", []))
-    uiElements.append(uiElement(uiForm.button, (100, 35), (5, 85), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
-    uiElements.append(uiElement(uiForm.button, (100, 35), (5, 125), (145, 145, 145), (0,0,0), 24, (45,45,45), "Settings", [openSettings]))
-    uiElements.append(uiElement(uiForm.button, (100, 35), (5, 165), (145, 145, 145), (0,0,0), 24, (45,45,45), "Home", [gotoTitle]))
+    uiElements.append(uiElement(uiForm.panel, (500, 500), (win.get_width()/2-250, win.get_height()/2-250), (100, 100, 100), (0,0,0), 24, (45,45,45), "", []))
+    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 345), (145, 145, 145), (0,0,0), 24, (45,45,45), "Null", []))
+    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 385), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
+    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 425), (145, 145, 145), (0,0,0), 24, (45,45,45), "Settings", [openSettings]))
+    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 465), (145, 145, 145), (0,0,0), 24, (45,45,45), "Home", [gotoTitle]))
 
     uiElements[0].hidden = True
     uiElements[1].hidden = True
@@ -905,10 +914,12 @@ while running:
     credUi = uiElement(uiForm.panel, (170, 50), (-5, 75), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
     fuelUi = uiElement(uiForm.panel, (170, 50), (-5, 150), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
     metalUi = uiElement(uiForm.panel, (170, 50), (-5, 225), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
+    bulletsUi = uiElement(uiForm.panel, (170, 50), (-5, 300), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
 
     uiElements.append(credUi)
     uiElements.append(fuelUi)
     uiElements.append(metalUi)
+    uiElements.append(bulletsUi)
 
     bg = uiElement(uiForm.panel, (500, 55), (-5, -10), (145,145,145), (255,255,255), 48, (45,45,45), "", [])
     fg = uiElement(uiForm.panel, (480, 35), (5, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", [])
@@ -932,10 +943,12 @@ while running:
 
     upgradeBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "Heal 5 HP     Price: 5C 1F", [fullHeal])
     upgradeHpBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-200), (125, 125, 125), (0,0,0), 24, (45,45,45), "+1 MaxHP    Price: 7C 3F 20M", [hpUpgrade])
+    buyBulletsBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-160), (125, 125, 125), (0,0,0), 24, (45,45,45), "+20 Bullets    Price: 20M", [buyBullets])
 
-    uiElements.append(shopbg)
-    uiElements.append(upgradeBtn)
-    uiElements.append(upgradeHpBtn)
+    shopUi = [shopbg, upgradeBtn, upgradeHpBtn, buyBulletsBtn]
+
+    for uiElem in shopUi:
+        uiElements.append(uiElem)
 
     uiElements.append(bg)
     uiElements.append(fg)
@@ -976,10 +989,16 @@ while running:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_ESCAPE]:
                     paused = not paused
+                    shopOpen = False
+                    planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
+                    for planet in planets:
+                        planet.openShop = False
                 if keys[pygame.K_e]:
-                    openShop = True
+                    if not paused:
+                        openShop = True
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if not paused and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.3:
+                planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
+                if not paused and not any(planet for planet in planets if planet.openShop) and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.3 and bullets > 0:
                     # Play sfx
                     shootsfx.play()
                     # Spawn a bullet
@@ -991,9 +1010,11 @@ while running:
                     bullet.angle = -angle
                     gameObjects.insert(len(gameObjects)-2, bullet)
                     lastShotTime = time.time()
+
+                    bullets -= 1
             if event.type == pygame.JOYBUTTONDOWN:
                 if not paused:
-                    if event.button == 0 and time.time() - lastShotTime > 0.3:
+                    if event.button == 0 and not any(planet for planet in planets if planet.openShop)  and time.time() - lastShotTime > 0.3 and bullets > 0:
                         # Play sfx
                         shootsfx.play()
                         # Spawn a bullet
@@ -1005,6 +1026,8 @@ while running:
                         bullet.angle = -angle
                         gameObjects.insert(len(gameObjects)-2, bullet)
                         lastShotTime = time.time()
+
+                        bullets -= 1
                 if event.button == 6:
                     paused = not paused
                     uiOpen = paused
@@ -1091,7 +1114,7 @@ while running:
                 print("New Planet Cleared")
             
             keys = pygame.key.get_pressed()
-            if dist < planetRadius and planetEnemies[planet] == False:
+            if dist < planetRadius and planetEnemies[planet] == False and not paused:
                 planet.popup = True
                 uiElements[uiElements.index(keybindPopup)].position["x"] = planet.position["x"] + gameCamera.position["x"] - icoWidth*0.75
                 uiElements[uiElements.index(keybindPopup)].position["y"] = planet.position["y"] + gameCamera.position["y"] - icoHeight*0.75
@@ -1107,13 +1130,11 @@ while running:
                 uiOpen = True
                 openShop = False
         if any(planet for planet in planets if planet.openShop):
-            uiElements[uiElements.index(shopbg)].hidden = False
-            uiElements[uiElements.index(upgradeBtn)].hidden = False
-            uiElements[uiElements.index(upgradeHpBtn)].hidden = False
+            for elem in shopUi:
+                uiElements[uiElements.index(elem)].hidden = False
         else:
-            uiElements[uiElements.index(shopbg)].hidden = True
-            uiElements[uiElements.index(upgradeBtn)].hidden = True
-            uiElements[uiElements.index(upgradeHpBtn)].hidden = True
+            for elem in shopUi:
+                uiElements[uiElements.index(elem)].hidden = True
 
         if any(planet for planet in planets if planet.popup):
             uiElements[uiElements.index(keybindPopup)].hidden = False
@@ -1129,6 +1150,9 @@ while running:
 
         uiElements[uiElements.index(metalUi)].text = str(inventory.inventory["Metal"]["amount"])
         uiElements[uiElements.index(metalUi)].relsprite()
+
+        uiElements[uiElements.index(bulletsUi)].text = str(bullets)
+        uiElements[uiElements.index(bulletsUi)].relsprite()
 
 
         # Player hp bar ui
