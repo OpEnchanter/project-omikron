@@ -929,8 +929,9 @@ while running:
     metalIco = pygame.image.load("./resources/sprites/metal.png").convert_alpha()
     fuelIco = pygame.image.load("./resources/sprites/fuelcell.png").convert_alpha()
     credIco = pygame.image.load("./resources/sprites/cred.png").convert_alpha()
+    bulletIco = pygame.image.load("./resources/sprites/bulletico.png").convert_alpha()
 
-    icons = [credIco, fuelIco, metalIco]
+    icons = [credIco, fuelIco, metalIco, bulletIco]
 
     for icon in icons:
         xscale = icon.get_width()*0.25
@@ -1159,14 +1160,24 @@ while running:
 
         hpPercent = gameObjects[len(gameObjects)-1].hp / gameObjects[len(gameObjects)-1].maxhp
 
-        #uiElements[uiElements.index(hpui[0])].position["x"] = (0)-uiElements[6].scale["x"]/2
-        uiElements[uiElements.index(hpui[0])].relsprite()
+        high_hp = (43, 255, 0)
+        med_hp = (255, 136, 0)
+        low_hp = (255,0,0)
 
-        #uiElements[uiElements.index(hpui[1])].position["x"] = (0)-uiElements[6].scale["x"]/2+10
+        color = (0,0,0)
+
+        if hpPercent <= 1:
+            color = high_hp
+        if hpPercent <= 0.66:
+            color = med_hp
+        if hpPercent <= 0.33:
+            color = low_hp
+
+        #Foreground
         uiElements[uiElements.index(hpui[1])].scale["x"] = 480*hpPercent
+        uiElements[uiElements.index(hpui[1])].color = color
         uiElements[uiElements.index(hpui[1])].relsprite()
 
-        #inCombat = any(obj for obj in gameObjects if obj.followingPlayer == True)
 
         win.fill((0,0,0))
 
@@ -1183,9 +1194,10 @@ while running:
 
         gameUiHandler.render(uiElements)
 
-        win.blit(icons[0], (10, 75+5))
-        win.blit(icons[1], (10, 150+5))
-        win.blit(icons[2], (10, 225+5))
+        win.blit(icons[0], (10, 80))
+        win.blit(icons[1], (10, 155))
+        win.blit(icons[2], (10, 230))
+        win.blit(icons[3], (10, 305))
 
         pygame.display.flip()
 
