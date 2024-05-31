@@ -65,7 +65,7 @@ class camera():
         self.cameraOffset = [0,0]
         if self.runningCameraAction and self.camActionType == cameraAction.cameraShake:
             if self.camActionFramesLeft % 5 == 0:
-                self.cameraOffset = [random.randint(-10,10), random.randint(-10,10)]
+                self.cameraOffset = [random.randint(-3*self.camActionFramesLeft,3*self.camActionFramesLeft), random.randint(-3*self.camActionFramesLeft,3*self.camActionFramesLeft)]
             self.camActionFramesLeft -= 1
         if self.camActionFramesLeft <= 0:
             self.runningCameraAction = False
@@ -81,7 +81,7 @@ class camera():
             self.runningCameraAction = True
             self.cameraActionStart = self.position
             self.camActionType = action
-            self.camActionFramesLeft = 20
+            self.camActionFramesLeft = 10
             
             
 class uiForm():
@@ -902,16 +902,16 @@ while running:
     uiElements[3].hidden = True
     uiElements[4].hidden = True
 
-    credUi = uiElement(uiForm.panel, (75, 100), (100, -10), (145,145,145), (255,255,255), 48, (45,45,45), "0", [])
-    fuelUi = uiElement(uiForm.panel, (75, 100), (200, -10), (145,145,145), (255,255,255), 48, (45,45,45), "0", [])
-    metalUi = uiElement(uiForm.panel, (75, 100), (300, -10), (145,145,145), (255,255,255), 48, (45,45,45), "0", [])
+    credUi = uiElement(uiForm.panel, (170, 50), (-5, 75), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
+    fuelUi = uiElement(uiForm.panel, (170, 50), (-5, 150), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
+    metalUi = uiElement(uiForm.panel, (170, 50), (-5, 225), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
 
     uiElements.append(credUi)
     uiElements.append(fuelUi)
     uiElements.append(metalUi)
 
-    bg = uiElement(uiForm.panel, (500, 55), (win.get_width()/2, -10), (145,145,145), (255,255,255), 48, (45,45,45), "", [])
-    fg = uiElement(uiForm.panel, (480, 35), (win.get_width()/2, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", [])
+    bg = uiElement(uiForm.panel, (500, 55), (-5, -10), (145,145,145), (255,255,255), 48, (45,45,45), "", [])
+    fg = uiElement(uiForm.panel, (480, 35), (5, 5), (0,255,0), (255,255,255), 48, (45,45,45), "", [])
 
     hpui = [bg, fg]
 
@@ -922,8 +922,8 @@ while running:
     icons = [credIco, fuelIco, metalIco]
 
     for icon in icons:
-        xscale = icon.get_width()*0.3
-        yscale = icon.get_height()*0.3
+        xscale = icon.get_width()*0.25
+        yscale = icon.get_height()*0.25
         icons[icons.index(icon)] = pygame.transform.scale(icon, (xscale, yscale))
 
     """Initialize Shop UI Elements"""
@@ -1135,10 +1135,10 @@ while running:
 
         hpPercent = gameObjects[len(gameObjects)-1].hp / gameObjects[len(gameObjects)-1].maxhp
 
-        uiElements[uiElements.index(hpui[0])].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2
+        #uiElements[uiElements.index(hpui[0])].position["x"] = (0)-uiElements[6].scale["x"]/2
         uiElements[uiElements.index(hpui[0])].relsprite()
 
-        uiElements[uiElements.index(hpui[1])].position["x"] = (win.get_size()[0]/2)-uiElements[6].scale["x"]/2+10
+        #uiElements[uiElements.index(hpui[1])].position["x"] = (0)-uiElements[6].scale["x"]/2+10
         uiElements[uiElements.index(hpui[1])].scale["x"] = 480*hpPercent
         uiElements[uiElements.index(hpui[1])].relsprite()
 
@@ -1159,9 +1159,9 @@ while running:
 
         gameUiHandler.render(uiElements)
 
-        win.blit(icons[0], (135,65))
-        win.blit(icons[1], (235,65))
-        win.blit(icons[2], (335,65))
+        win.blit(icons[0], (10, 75+5))
+        win.blit(icons[1], (10, 150+5))
+        win.blit(icons[2], (10, 225+5))
 
         pygame.display.flip()
 
