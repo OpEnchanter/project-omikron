@@ -190,8 +190,8 @@ class gameObject():
         self.isEnemy = False
         self.followingPlayer = False
         self.rendered = True
-        self.hp = 3
-        self.maxhp = 3
+        self.hp = 7
+        self.maxhp = 7
         self.lastShotTime = 0
         self.target_angle = 0
 
@@ -564,7 +564,7 @@ def enemy(self):
 
         # Draw health bar
         high_hp = (43, 255, 0)
-        med_hp = (255, 136, 0)
+        med_hp = (252, 152, 3)
         low_hp = (255,0,0)
 
         hpPercent = self.hp/self.maxhp
@@ -573,11 +573,9 @@ def enemy(self):
             color = (0,0,0)
 
             if hpPercent < 1:
-                color = high_hp
-            if hpPercent <= 0.66:
-                color = med_hp
-            if hpPercent <= 0.33:
-                color = low_hp
+                color = (med_hp[0] + (high_hp[0] - med_hp[0])*hpPercent, med_hp[1] + (high_hp[1] - med_hp[1])*hpPercent, med_hp[2] + (high_hp[2] - med_hp[2])*hpPercent)
+            if hpPercent <= 0.5:
+                color = (low_hp[0] + (med_hp[0] - low_hp[0])*hpPercent+0.5, low_hp[1] + (med_hp[1] - low_hp[1])*hpPercent+0.5, low_hp[2] + (med_hp[2] - low_hp[2])*hpPercent+0.5)
             
             renderedPosition = [self.position["x"]+gameCamera.position["x"], self.position["y"]+gameCamera.position["y"]]
             pygame.draw.rect(win, (155, 155, 155), (renderedPosition[0]-40, renderedPosition[1]-50, 80, 20), 0, 10)
@@ -1161,17 +1159,13 @@ while running:
         hpPercent = gameObjects[len(gameObjects)-1].hp / gameObjects[len(gameObjects)-1].maxhp
 
         high_hp = (43, 255, 0)
-        med_hp = (255, 136, 0)
+        med_hp = (252, 152, 3)
         low_hp = (255,0,0)
 
-        color = (0,0,0)
-
         if hpPercent <= 1:
-            color = high_hp
-        if hpPercent <= 0.66:
-            color = med_hp
-        if hpPercent <= 0.33:
-            color = low_hp
+            color = (med_hp[0] + (high_hp[0] - med_hp[0])*hpPercent, med_hp[1] + (high_hp[1] - med_hp[1])*hpPercent, med_hp[2] + (high_hp[2] - med_hp[2])*hpPercent)
+        if hpPercent <= 0.5:
+            color = (low_hp[0] + (med_hp[0] - low_hp[0])*hpPercent+0.5, low_hp[1] + (med_hp[1] - low_hp[1])*hpPercent+0.5, low_hp[2] + (med_hp[2] - low_hp[2])*hpPercent+0.5)
 
         #Foreground
         uiElements[uiElements.index(hpui[1])].scale["x"] = 480*hpPercent
