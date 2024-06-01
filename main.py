@@ -25,12 +25,14 @@ selectsfx = pygame.mixer.Sound("./resources/audio/select.wav")
 explodesfx = pygame.mixer.Sound("./resources/audio/explosion.wav")
 hitsfx = pygame.mixer.Sound("./resources/audio/hit.wav")
 deathsfx = pygame.mixer.Sound("./resources/audio/death.wav")
+noammosfx = pygame.mixer.Sound("./resources/audio/noammo.wav")
 pygame.mixer.music.load('./resources/audio/Omikron.wav')
 pygame.mixer.music.set_volume(0.3)
 shootsfx.set_volume(0.4)
 deathsfx.set_volume(0.8)
 selectsfx.set_volume(0.4)
 explodesfx.set_volume(0.8)
+noammosfx.set_volume(0.8)
 hitsfx.set_volume(0.8)
 
 # Play the song indefinitely
@@ -141,15 +143,20 @@ class uiElement():
                 
                 global globalMenuPressed
 
-                if pygame.mouse.get_pressed()[0] or globalMenuPressed and not self.clicked:
+                if pygame.mouse.get_pressed()[0] and not self.clicked or globalMenuPressed and not self.clicked:
                     selectsfx.play()
                     for event in self.onclick:
                         event(self)
                     self.clicked = True
-                    globalMenuPressed = False
 
-                if not pygame.mouse.get_pressed()[0] or not globalMenuPressed:
+                interactBtn = True
+                if joystick:
+                    joystick.get_button(14)
+
+
+                if not pygame.mouse.get_pressed()[0] and self.clicked or not interactBtn and self.clicked:
                     self.clicked = False
+                    globalMenuPressed = False
             else:
                 font = pygame.font.Font(None, self.fontsize)
                 presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
@@ -190,8 +197,8 @@ class gameObject():
         self.isEnemy = False
         self.followingPlayer = False
         self.rendered = True
-        self.hp = 7
-        self.maxhp = 7
+        self.hp = 5
+        self.maxhp = 5
         self.lastShotTime = 0
         self.target_angle = 0
 
@@ -478,7 +485,7 @@ def enemy(self):
             if pdist < 350 and pdist > 100 or self.followingPlayer and pdist > 100:
 
                 # Allow enemy to shoot at player
-                if (time.time() - self.lastShotTime > 1 and self.angle > self.target_angle - 5 and self.angle < self.target_angle + 5):
+                if (time.time() - self.lastShotTime > 0.5 and self.angle > self.target_angle - 180 and self.angle < self.target_angle + 180):
                     shootsfx.play()
 
                     angle = self.angle
@@ -494,7 +501,7 @@ def enemy(self):
                 angle_deg = math.degrees(angle_rad)
 
                 self.target_angle = angle_deg
-                rotation_speed = 1  # Adjust this value to control the speed of rotation
+                rotation_speed = 3
 
                 angle_difference = (self.target_angle - self.angle) % 360
                 if angle_difference > 180:
@@ -521,11 +528,11 @@ def enemy(self):
                 angle_deg = math.degrees(angle_rad)
 
                 self.target_angle = angle_deg
-                rotation_speed = 1  # Adjust this value to control the speed of rotation
+                rotation_speed = 3
 
                 angle_difference = (self.target_angle - self.angle) % 360
                 if angle_difference > 180:
-                    angle_difference -= 360
+                    angle_difference += 360
 
                 if abs(angle_difference) < rotation_speed:
                     self.angle = self.target_angle
@@ -755,6 +762,8 @@ while running:
     titleRenderer = uiHandler()
     titleUI = []
 
+    mouseDown = pygame.mouse.get_pressed()[0]
+
     titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, win.get_height()/2-150), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Project: Omikron", []))
     titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2-75), (115,115,115), (255,255,255), 48, (45,45,45), "Play", [play]))
     titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2), (115,115,115), (255,255,255), 48, (45,45,45), "Quit", [leave]))
@@ -815,11 +824,15 @@ while running:
         titleUI[0].scale["x"] = win.get_size()[0]
         titleUI[0].relsprite()
 
-        titleUI[1].position["x"] = (win.get_width()/2)-(350/2)
-        titleUI[1].frame()
+        if not mouseDown:
+            titleUI[1].position["x"] = (win.get_width()/2)-(350/2)
+            titleUI[1].frame()
 
-        titleUI[2].position["x"] = (win.get_width()/2)-(350/2)
-        titleUI[2].frame()
+            titleUI[2].position["x"] = (win.get_width()/2)-(350/2)
+            titleUI[2].frame()
+
+        if not pygame.mouse.get_pressed()[0]:
+            mouseDown = False
 
         if titleScreen:
             win.fill((0,0,0))
@@ -1011,6 +1024,9 @@ while running:
                     lastShotTime = time.time()
 
                     bullets -= 1
+                elif bullets <= 0:
+                    # Play sfx
+                    noammosfx.play()
             if event.type == pygame.JOYBUTTONDOWN:
                 if not paused:
                     if event.button == 0 and not any(planet for planet in planets if planet.openShop)  and time.time() - lastShotTime > 0.3 and bullets > 0:
@@ -1096,6 +1112,12 @@ while running:
 
             #pygame.mixer.music.unpause()
             pygame.mixer.music.set_volume(0.4)
+        
+        planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
+        if bullets <= 0 and inventory.inventory["Metal"]["amount"] < 20 or bullets <= 0 and all(planet for planet in planets if planetEnemies[planet] == False):
+            deathsfx.play()
+            ingame = False
+            titleScreen = True
 
         """Shop"""
         planetRadius = 150
