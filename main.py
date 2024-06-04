@@ -237,9 +237,19 @@ class gameObject():
             new_height = int(img.get_height() * 0.1)
             p = pygame.transform.scale(img, (new_width, new_height))
             presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
-        elif shape == "enemy":
+        elif shape == "speeder":
             # Load the original image
             img = pygame.image.load('./resources/sprites/enemy.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
+        elif shape == "brute":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/tank.png').convert_alpha()
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -656,8 +666,8 @@ def brute(self):
                     angle = self.angle
                     bullet = gameObject(self.position["x"], self.position["y"], "bullet", -angle, 1, [bruteBullet], gameTimer)
                     angle_rad = math.radians(-angle+90)
-                    bullet.xvel = math.sin(angle_rad) * 1000
-                    bullet.yvel = math.cos(angle_rad) * 1000
+                    bullet.xvel = math.sin(angle_rad) * 500
+                    bullet.yvel = math.cos(angle_rad) * 500
                     bullet.angle = -angle
                     gameObjects.insert(len(gameObjects)-2, bullet)
                     self.lastShotTime = time.time()
@@ -1090,11 +1100,11 @@ while running:
             enemyType = enemyType[0]
             enemyObj = False
             if enemyType == "speeder":
-                enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "enemy", 0, 1, [speeder], gameTimer)
+                enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "speeder", 0, 1, [speeder], gameTimer)
                 enemyObj.hp = 5
                 enemyObj.maxhp = 5
             if enemyType == "brute":
-                enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "enemy", 0, 1, [brute], gameTimer)
+                enemyObj = gameObject(planetPosition[0]+math.sin((360/3)*i)*10, planetPosition[1]+math.cos((360/3)*i)*10, "brute", 0, 1, [brute], gameTimer)
                 enemyObj.hp = 10
                 enemyObj.maxhp = 10
             #enemyObj.followingPlayer = False
@@ -1318,9 +1328,8 @@ while running:
             pygame.mixer.music.set_volume(0.4)
         
         planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
-        noShop = all(planet for planet in planets if planetEnemies[planet] != False)
-        print(noShop)
-        if bullets <= 0 and inventory.inventory["Metal"]["amount"] < 20 or bullets <= 0 and noShop:
+        anyShop = any(planet for planet in planets if planetEnemies[planet] != False)
+        if bullets <= 0 and inventory.inventory["Metal"]["amount"] < 20 or bullets <= 0 and not anyShop:
             deathsfx.play()
             ingame = False
             titleScreen = True
