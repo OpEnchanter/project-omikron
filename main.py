@@ -1001,7 +1001,7 @@ def hpUpgrade(self):
 
 def buyBullets(self):
     global inventory
-    metal = inventory.rem_item("Metal", 20)
+    metal = inventory.rem_item("Metal", 15)
     if metal:
         global bullets
         bullets += 20
@@ -1248,7 +1248,7 @@ while running:
 
     upgradeBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "Heal 5 HP     Price: 5C 1F", [fullHeal])
     upgradeHpBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-200), (125, 125, 125), (0,0,0), 24, (45,45,45), "+1 MaxHP    Price: 7C 3F 20M", [hpUpgrade])
-    buyBulletsBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-160), (125, 125, 125), (0,0,0), 24, (45,45,45), "+20 Bullets    Price: 20M", [buyBullets])
+    buyBulletsBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-160), (125, 125, 125), (0,0,0), 24, (45,45,45), "+20 Bullets    Price: 15M", [buyBullets])
 
     shopUi = [shopbg, upgradeBtn, upgradeHpBtn, buyBulletsBtn]
 
@@ -1406,9 +1406,10 @@ while running:
             #pygame.mixer.music.unpause()
             pygame.mixer.music.set_volume(0.4)
         
+        # Softlock Prevention
         planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
-        anyShop = any(planet for planet in planets if planetEnemies[planet] != False)
-        if bullets <= 0 and inventory.inventory["Metal"]["amount"] < 20 or bullets <= 0 and not anyShop:
+        allShopClosed = all(planet for planet in planets if planetEnemies[planet] != False)
+        if bullets <= 0 and inventory.inventory["Metal"]["amount"] < 15 or bullets <= 0 and not allShopClosed:
             deathsfx.play()
             ingame = False
             titleScreen = True
