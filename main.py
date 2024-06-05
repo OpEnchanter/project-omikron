@@ -249,7 +249,17 @@ class gameObject():
             presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
         elif shape == "brute":
             # Load the original image
-            img = pygame.image.load('./resources/sprites/tank.png').convert_alpha()
+            img = pygame.image.load('./resources/sprites/brute.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
+        elif shape == "freighter":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/freighter.png').convert_alpha()
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -447,10 +457,10 @@ def playerScript(self):
             self.hp = self.maxhp
             global inventory
             removeCreds = inventory.rem_item("Credit", 10)
+            deathsfx.play()
             if not removeCreds:
                 gotoTitle(self)
             if removeCreds:
-                deathsfx.play()
                 reset(self)
 
 def speeder(self):
@@ -871,6 +881,67 @@ def bruteBullet(self):
     # Check if object is being rendered and if not remove object
     if not self.rendered and self in gameObjects:
         gameObjects.pop(gameObjects.index(self))
+
+
+def freight(self):
+    global paused
+    if not paused:
+        self.position["x"] += 100 * self.timer.deltaTime
+
+        if self.position["x"] > 6000:
+            self.position["x"] = -6000
+        if self.position["x"] < -6000:
+            self.position["x"] = 6000
+
+        if self.position["y"] > 6000:
+            self.position["y"] = -6000
+        if self.position["y"] < -6000:
+            self.position["y"] = 6000
+
+        # Draw health bar
+        high_hp = (43, 255, 0)
+        med_hp = (252, 152, 3)
+        low_hp = (255,0,0)
+
+        hpPercent = self.hp/self.maxhp
+
+        if hpPercent < 1:
+            color = (0,0,0)
+
+            if hpPercent < 1:
+                color = (med_hp[0] + (high_hp[0] - med_hp[0])*hpPercent, med_hp[1] + (high_hp[1] - med_hp[1])*hpPercent, med_hp[2] + (high_hp[2] - med_hp[2])*hpPercent)
+            if hpPercent <= 0.5:
+                color = (low_hp[0] + (med_hp[0] - low_hp[0])*hpPercent+0.5, low_hp[1] + (med_hp[1] - low_hp[1])*hpPercent+0.5, low_hp[2] + (med_hp[2] - low_hp[2])*hpPercent+0.5)
+            
+            renderedPosition = [self.position["x"]+gameCamera.position["x"], self.position["y"]+gameCamera.position["y"]]
+            pygame.draw.rect(win, (155, 155, 155), (renderedPosition[0]-40, renderedPosition[1]-50, 80, 20), 0, 10)
+            pygame.draw.rect(win, color, (renderedPosition[0]-35, renderedPosition[1]-45, 70*hpPercent, 10), 0, 10)
+
+        if self.hp <= 0:
+            # Add drops to the player's inventory
+            global inventory
+            
+            inventory.add_item("Metal", random.randint(5, 20))
+            inventory.add_item("Credit", random.randint(3, 5))
+            inventory.add_item("Fuel Cell", random.randint(4, 6))
+
+            # Spawn Particles
+
+            gameCamera.runCameraAction(cameraAction.cameraShake)
+
+            for x in range(5):
+                particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (random.randint(-10, 10),random.randint(-10, 10)),100,particleShape.explosion, 0.02)
+            
+            explodesfx.play()
+
+            # Destroy object
+            global gameObjects
+            gameObjects.remove(self)
+
+
+
+
+
             
 
 def enemyInit(self):
@@ -1114,6 +1185,14 @@ while running:
             planetEnemies[gameObjects[0]].append(enemyObj)
             enemyPlanets[enemyObj] = gameObjects[0]
             gameObjects.append(enemyObj)
+
+
+    for i in range(50):
+        freighter = gameObject(random.randint(-5000, 5000),random.randint(-5000,5000), "freighter", 0, 1, [freight], gameTimer)
+        freighter.isEnemy = True
+        freighter.hp = 20
+        freighter.maxhp = 20
+        gameObjects.append(freighter)
 
     player = gameObject(250, 250, "mesh", 0, 1, [playerScript], gameTimer)
     player.hp = 10
