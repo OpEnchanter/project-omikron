@@ -5,7 +5,7 @@ ingame = True
 
 globalMenuPressed = False
 
-pygame.mixer.pre_init(22050, -16, 1, 512)  # Adjust buffer size as needed
+pygame.mixer.pre_init(44100, -16, 1, 2048)  # Adjust buffer size as needed
 pygame.init()
 win = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
 pygame.display.toggle_fullscreen()
@@ -26,8 +26,8 @@ explodesfx = pygame.mixer.Sound("./resources/audio/explosion.wav")
 hitsfx = pygame.mixer.Sound("./resources/audio/hit.wav")
 deathsfx = pygame.mixer.Sound("./resources/audio/death.wav")
 noammosfx = pygame.mixer.Sound("./resources/audio/noammo.wav")
-pygame.mixer.music.load('./resources/audio/Omikron.wav')
-pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.load('./resources/audio/project-omikron-menu.wav')
+pygame.mixer.music.set_volume(0.2)
 shootsfx.set_volume(0.4)
 deathsfx.set_volume(0.8)
 selectsfx.set_volume(0.4)
@@ -36,7 +36,7 @@ noammosfx.set_volume(0.8)
 hitsfx.set_volume(0.8)
 
 # Play the song indefinitely
-pygame.mixer.music.play(loops=-2)
+pygame.mixer.music.play(loops=-1)
 
 
 """Define all runtime variables"""
@@ -1032,6 +1032,10 @@ running = True
 uiOpen = False
 while running: 
 
+    pygame.mixer.music.load('./resources/audio/project-omikron-menu.wav')
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play(loops=-1)
+
     """Title Screen"""
     globalMenuPressed = False
     titleRenderer = uiHandler()
@@ -1282,6 +1286,10 @@ while running:
     shownBtn = [btn for btn in uiElements if btn.form == uiForm.button and not btn.hidden]
     cur_hovered = 0
     openShop = False
+
+    pygame.mixer.music.load('./resources/audio/project-omikron-bg.wav')
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play(loops=-1)
 
     """Main Game Loop"""
     while ingame:
