@@ -103,7 +103,7 @@ class uiHandler():
 
 class uiElement():
     def __init__(self, form = uiForm, scale = tuple, position = tuple, color = pygame.SRCALPHA, fontcolor = tuple, fontsize = int, hovercolor = tuple, text=str, onclick = list):
-        font = pygame.font.Font(None, fontsize)
+        font = pygame.font.Font('resources/font/pixel.ttf', fontsize)
         self.fontsize = fontsize
         self.form = form
         self.scale = {"x":scale[0],"y":scale[1]}
@@ -134,7 +134,7 @@ class uiElement():
         if self.form == uiForm.button and not self.hidden:
             mousex, mousey = pygame.mouse.get_pos()
             if mousex > self.position["x"] and mousex < self.position["x"]+self.scale["x"] and mousey > self.position["y"] and mousey < self.position["y"]+self.scale["y"] or self.hovered:
-                font = pygame.font.Font(None, self.fontsize)
+                font = pygame.font.Font('resources/font/pixel.ttf', self.fontsize)
                 presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
                 pygame.draw.rect(presprite, self.hovercolor, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
                 text = font.render(self.text, True, self.fontcolor)
@@ -159,7 +159,7 @@ class uiElement():
                     self.clicked = False
                     globalMenuPressed = False
             else:
-                font = pygame.font.Font(None, self.fontsize)
+                font = pygame.font.Font('resources/font/pixel.ttf', self.fontsize)
                 presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
                 pygame.draw.rect(presprite, self.color, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
                 text = font.render(self.text, True, self.fontcolor)
@@ -168,7 +168,7 @@ class uiElement():
                 self.sprite = presprite
                 self.clicked = False
     def relsprite(self):
-        font = pygame.font.Font(None, self.fontsize)
+        font = pygame.font.Font('resources/font/pixel.ttf', self.fontsize)
         if self.form == uiForm.button:
             presprite = pygame.Surface((self.scale["x"],self.scale["y"]), pygame.SRCALPHA)
             pygame.draw.rect(presprite, self.color, (0,0, self.scale["x"], self.scale["y"]), 0, 10)
@@ -232,19 +232,6 @@ class gameObject():
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
             img = pygame.image.load('./resources/sprites/planets/planet-green.png').convert_alpha()
-
-            # Resize the image
-            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
-            new_width = int(img.get_width() * 0.5)
-            new_height = int(img.get_height() * 0.5)
-            p = pygame.transform.scale(img, (new_width, new_height))
-            presprite.blit(p, (500-new_width/2, 500-new_width/2))
-            #pygame.draw.planet(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
-        elif self.shape == "planet-cyan":
-            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
-            presprite.fill(pygame.SRCALPHA)
-            # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet-cyan.png').convert_alpha()
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -1086,7 +1073,7 @@ titleScreen = True
 def play(self):
     titleRenderer = uiHandler()
 
-    titleUI = [uiElement(uiForm.panel, (350, 50), (win.get_width()/2-350/2, 150), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Loading...", [leave])]
+    titleUI = [uiElement(uiForm.panel, (350, 50), (win.get_width()/2-350/2, 150), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Loading...", [leave])]
 
     win.fill((0,0,0))
 
@@ -1123,9 +1110,9 @@ while running:
 
     mouseDown = pygame.mouse.get_pressed()[0]
 
-    titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, win.get_height()/2-150), pygame.SRCALPHA, (255,255,255), 48, (45,45,45), "Project: Omikron", []))
-    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2-75), (115,115,115), (255,255,255), 48, (45,45,45), "Play", [play]))
-    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2), (115,115,115), (255,255,255), 48, (45,45,45), "Quit", [leave]))
+    titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, win.get_height()/2-150), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Project: Omikron", []))
+    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2-75), (115,115,115), (255,255,255), 24, (45,45,45), "Play", [play]))
+    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2), (115,115,115), (255,255,255), 24, (45,45,45), "Quit", [leave]))
 
     shownBtn = [btn for btn in titleUI if btn.form == uiForm.button and not btn.hidden]
     cur_hovered = 0
@@ -1308,10 +1295,10 @@ while running:
     uiElements[3].hidden = True
     uiElements[4].hidden = True
 
-    credUi = uiElement(uiForm.panel, (170, 50), (-5, 75), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
-    fuelUi = uiElement(uiForm.panel, (170, 50), (-5, 150), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
-    metalUi = uiElement(uiForm.panel, (170, 50), (-5, 225), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
-    bulletsUi = uiElement(uiForm.panel, (170, 50), (-5, 300), (145,145,145, 64), (255,255,255), 48, (45,45,45), "0", [])
+    credUi = uiElement(uiForm.panel, (170, 50), (-5, 75), (145,145,145, 64), (255,255,255), 24, (45,45,45), "0", [])
+    fuelUi = uiElement(uiForm.panel, (170, 50), (-5, 150), (145,145,145, 64), (255,255,255), 24, (45,45,45), "0", [])
+    metalUi = uiElement(uiForm.panel, (170, 50), (-5, 225), (145,145,145, 64), (255,255,255), 24, (45,45,45), "0", [])
+    bulletsUi = uiElement(uiForm.panel, (170, 50), (-5, 300), (145,145,145, 64), (255,255,255), 24, (45,45,45), "0", [])
 
     uiElements.append(credUi)
     uiElements.append(fuelUi)
@@ -1339,9 +1326,9 @@ while running:
 
     shopbg = uiElement(uiForm.panel, (500, 500), (win.get_width()/2-250, win.get_height()/2-250), (145,145,145), (255,255,255), 48, (45,45,45), "", [])
 
-    upgradeBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 24, (45,45,45), "Heal 5 HP     Price: 5C 1F", [fullHeal])
-    upgradeHpBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-200), (125, 125, 125), (0,0,0), 24, (45,45,45), "+1 MaxHP    Price: 7C 3F 20M", [hpUpgrade])
-    buyBulletsBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-160), (125, 125, 125), (0,0,0), 24, (45,45,45), "+20 Bullets    Price: 15M", [buyBullets])
+    upgradeBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-240), (125, 125, 125), (0,0,0), 12, (45,45,45), "Heal 5 HP     Price: 5C 1F", [fullHeal])
+    upgradeHpBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-200), (125, 125, 125), (0,0,0), 12, (45,45,45), "+1 MaxHP    Price: 7C 3F 20M", [hpUpgrade])
+    buyBulletsBtn = uiElement(uiForm.button, (480, 35), (win.get_width()/2-240, win.get_height()/2-160), (125, 125, 125), (0,0,0), 12, (45,45,45), "+20 Bullets    Price: 15M", [buyBullets])
 
     shopUi = [shopbg, upgradeBtn, upgradeHpBtn, buyBulletsBtn]
 
@@ -1517,7 +1504,7 @@ while running:
         """Shop"""
         planetRadius = 150
 
-        planetColors = ["planet-red","planet-orange","planet-green","planet-cyan","planet-blue", "planet-purple"]
+        planetColors = ["planet-red","planet-orange","planet-green","planet-blue", "planet-purple"]
         planets = [obj for obj in gameObjects if obj.shape in planetColors or obj.shape == "planet" and not obj == playerPlanet]
         for planet in planets:
             player = gameObjects[len(gameObjects)-1]
