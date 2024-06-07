@@ -1,4 +1,4 @@
-import pygame, math, sys, time, random
+import pygame, math, sys, time, random, asyncio
 
 score = 0
 ingame = True
@@ -26,6 +26,7 @@ explodesfx = pygame.mixer.Sound("./resources/audio/explosion.wav")
 hitsfx = pygame.mixer.Sound("./resources/audio/hit.wav")
 deathsfx = pygame.mixer.Sound("./resources/audio/death.wav")
 noammosfx = pygame.mixer.Sound("./resources/audio/noammo.wav")
+dingsfx = pygame.mixer.Sound("./resources/audio/complete.wav")
 pygame.mixer.music.load('./resources/audio/project-omikron-menu.wav')
 pygame.mixer.music.set_volume(0.2)
 shootsfx.set_volume(0.4)
@@ -184,6 +185,159 @@ class uiElement():
             self.sprite = presprite
 
 class gameObject():
+    def gensprite(self):
+        presprite = pygame.Surface((500, 500), pygame.SRCALPHA)
+        presprite.fill(pygame.SRCALPHA)
+        if self.shape == "planet":
+            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
+            presprite.fill(pygame.SRCALPHA)
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/planets/planet.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500-new_width/2, 500-new_width/2))
+            #pygame.draw.planet(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
+        elif self.shape == "planet-red":
+            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
+            presprite.fill(pygame.SRCALPHA)
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/planets/planet-red.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500-new_width/2, 500-new_width/2))
+            #pygame.draw.planet(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
+        elif self.shape == "planet-orange":
+            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
+            presprite.fill(pygame.SRCALPHA)
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/planets/planet-orange.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500-new_width/2, 500-new_width/2))
+            #pygame.draw.planet(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
+        elif self.shape == "planet-green":
+            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
+            presprite.fill(pygame.SRCALPHA)
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/planets/planet-green.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500-new_width/2, 500-new_width/2))
+            #pygame.draw.planet(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
+        elif self.shape == "planet-cyan":
+            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
+            presprite.fill(pygame.SRCALPHA)
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/planets/planet-cyan.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500-new_width/2, 500-new_width/2))
+            #pygame.draw.planet(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
+        elif self.shape == "planet-blue":
+            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
+            presprite.fill(pygame.SRCALPHA)
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/planets/planet-blue.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500-new_width/2, 500-new_width/2))
+            #pygame.draw.planet(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
+        elif self.shape == "planet-purple":
+            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
+            presprite.fill(pygame.SRCALPHA)
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/planets/planet-purple.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500-new_width/2, 500-new_width/2))
+            #pygame.draw.planet(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
+        elif self.shape == "mesh":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/player.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*self.scale, 500/2-new_height/2*self.scale))
+        elif self.shape == "bullet":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/bullet.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*self.scale, 500/2-new_height/2*self.scale))
+        elif self.shape == "speeder":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/enemy.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*self.scale, 500/2-new_height/2*self.scale))
+        elif self.shape == "brute":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/brute.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*self.scale, 500/2-new_height/2*self.scale))
+        elif self.shape == "freighter":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/freighter.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*self.scale, 500/2-new_height/2*self.scale))
+        elif self.shape == "rect":
+            pygame.draw.rect(presprite, (0,0,255), (0,0,500,500))
+
+        # Rotate the presprite
+        self.original_sprite = presprite
+        self.sprite = pygame.transform.rotate(self.original_sprite, self.angle)
+        self.rect = self.sprite.get_rect(center=(0,0))
+        self.rotated_rect = self.rect.copy()  # Create a copy of the rectangle
+        self.rotated_rect.center = (0,0)     # Set the center
     def __init__(self, x, y, shape, angle, scale, scripts, timer):
         winx, winy = win.get_size()
         self.position = {"x": x, "y": y}
@@ -202,80 +356,7 @@ class gameObject():
         self.lastShotTime = 0
         self.target_angle = 0
 
-        presprite = pygame.Surface((500, 500), pygame.SRCALPHA)
-        presprite.fill(pygame.SRCALPHA)
-        if shape == "circle":
-            presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
-            presprite.fill(pygame.SRCALPHA)
-            # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet.png').convert_alpha()
-
-            # Resize the image
-            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
-            new_width = int(img.get_width() * 0.5)
-            new_height = int(img.get_height() * 0.5)
-            p = pygame.transform.scale(img, (new_width, new_height))
-            presprite.blit(p, (500-new_width/2, 500-new_width/2))
-            #pygame.draw.circle(presprite, (random.randint(150,255),random.randint(150,255),random.randint(150,255)), (500, 500), 25*scale)
-        elif shape == "mesh":
-            # Load the original image
-            img = pygame.image.load('./resources/sprites/player.png').convert_alpha()
-
-            # Resize the image
-            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
-            new_width = int(img.get_width() * 0.5)
-            new_height = int(img.get_height() * 0.5)
-            p = pygame.transform.scale(img, (new_width, new_height))
-            presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
-        elif shape == "bullet":
-            # Load the original image
-            img = pygame.image.load('./resources/sprites/bullet.png').convert_alpha()
-
-            # Resize the image
-            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
-            new_width = int(img.get_width() * 0.1)
-            new_height = int(img.get_height() * 0.1)
-            p = pygame.transform.scale(img, (new_width, new_height))
-            presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
-        elif shape == "speeder":
-            # Load the original image
-            img = pygame.image.load('./resources/sprites/enemy.png').convert_alpha()
-
-            # Resize the image
-            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
-            new_width = int(img.get_width() * 0.5)
-            new_height = int(img.get_height() * 0.5)
-            p = pygame.transform.scale(img, (new_width, new_height))
-            presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
-        elif shape == "brute":
-            # Load the original image
-            img = pygame.image.load('./resources/sprites/brute.png').convert_alpha()
-
-            # Resize the image
-            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
-            new_width = int(img.get_width() * 0.5)
-            new_height = int(img.get_height() * 0.5)
-            p = pygame.transform.scale(img, (new_width, new_height))
-            presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
-        elif shape == "freighter":
-            # Load the original image
-            img = pygame.image.load('./resources/sprites/freighter.png').convert_alpha()
-
-            # Resize the image
-            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
-            new_width = int(img.get_width() * 0.5)
-            new_height = int(img.get_height() * 0.5)
-            p = pygame.transform.scale(img, (new_width, new_height))
-            presprite.blit(p, (500/2-new_width/2*scale, 500/2-new_height/2*scale))
-        elif shape == "rect":
-            pygame.draw.rect(presprite, (0,0,255), (0,0,500,500))
-
-        # Rotate the presprite
-        self.original_sprite = presprite
-        self.sprite = pygame.transform.rotate(self.original_sprite, angle)
-        self.rect = self.sprite.get_rect(center=(0,0))
-        self.rotated_rect = self.rect.copy()  # Create a copy of the rectangle
-        self.rotated_rect.center = (0,0)     # Set the center
+        self.gensprite()
     def frame(self):
         for script in self.scripts:
             script(self)
@@ -315,9 +396,9 @@ class particle():
             self.frames = [frame1, frame2]
 
             presprite.blit(frame1, (250,250))
-            #pygame.draw.circle(presprite, ((255, 123, 41)), (250,250), 7)
+            #pygame.draw.planet(presprite, ((255, 123, 41)), (250,250), 7)
         if s == particleShape.shockwave:
-            pygame.draw.circle(presprite, (255,0,0), (250, 250), 1, 5)
+            pygame.draw.planet(presprite, (255,0,0), (250, 250), 1, 5)
         self.sprite = presprite
     def anim_nextFrame(self):
         if self.animated:
@@ -335,7 +416,7 @@ class particle():
             if self.shape == particleShape.shockwave:
                 presprite = pygame.Surface((500,500), pygame.SRCALPHA)
                 presprite.blit(self.frames[int(self.frame)], (250,250))
-                pygame.draw.circle(presprite, (255,0,0), (250,250), (frame), 5)
+                pygame.draw.planet(presprite, (255,0,0), (250,250), (frame), 5)
                 self.sprite = presprite
                 if self.lagDelay >= 10:
                     self.frame += 1
@@ -938,12 +1019,6 @@ def freight(self):
             global gameObjects
             gameObjects.remove(self)
 
-
-
-
-
-            
-
 def enemyInit(self):
     self.followingPlayer = False
 
@@ -1023,6 +1098,11 @@ def play(self):
     global titleScreen
     titleScreen = False
 
+def fadeInMusic(fadeInLen = int):
+    for x in range(fadeInLen):
+        pygame.mixer.music.set_volume((0.2/fadeInLen)*x)
+        time.sleep(0.01)
+
 
 
 def leave(self):
@@ -1049,6 +1129,12 @@ while running:
 
     shownBtn = [btn for btn in titleUI if btn.form == uiForm.button and not btn.hidden]
     cur_hovered = 0
+
+    win.fill((0,0,0))
+    titleRenderer.render(titleUI)
+    pygame.display.flip()
+
+    fadeInMusic(10)
 
     while titleScreen:
         for event in pygame.event.get():
@@ -1121,6 +1207,9 @@ while running:
 
     """Game"""
 
+    pygame.mixer.music.fadeout(500)
+    time.sleep(0.5)
+
     planetEnemies = {}
     enemyPlanets = {}
 
@@ -1141,7 +1230,7 @@ while running:
     gameUiHandler = uiHandler()
     gameObjects = []
 
-    playerPlanet = gameObject(250, 250, "circle", 0, 5, [], gameTimer)
+    playerPlanet = gameObject(250, 250, "planet", 0, 5, [], gameTimer)
     planetEnemies[playerPlanet] = []
     gameObjects.append(playerPlanet)
 
@@ -1165,7 +1254,7 @@ while running:
                     nearestPlanet = dist
             if nearestPlanet < minPlanetDist:
                 planetPosition = [random.randint(-5000, 5000), random.randint(-5000, 5000)]
-        planet = gameObject(planetPosition[0], planetPosition[1], "circle", 0, 5, [], gameTimer)
+        planet = gameObject(planetPosition[0], planetPosition[1], "planet", 0, 5, [], gameTimer)
         planet.openShop = False
         planet.popup = False
         gameObjects.insert(0, planet)
@@ -1288,8 +1377,9 @@ while running:
     openShop = False
 
     pygame.mixer.music.load('./resources/audio/project-omikron-bg.wav')
-    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.set_volume(0)
     pygame.mixer.music.play(loops=-1)
+    fadeInMusic(10)
 
     """Main Game Loop"""
     while ingame:
@@ -1302,15 +1392,17 @@ while running:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_ESCAPE]:
                     paused = not paused
-                    shopOpen = False
-                    planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
+                    planets = [obj for obj in gameObjects if obj.shape == "planet" and not obj == playerPlanet]
                     for planet in planets:
                         planet.openShop = False
+                    shopOpen = False
+                    for elem in shopUi:
+                        uiElements[uiElements.index(elem)].hidden = True
                 if keys[pygame.K_e]:
                     if not paused:
                         openShop = True
             if event.type == pygame.MOUSEBUTTONDOWN:
-                planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
+                planets = [obj for obj in gameObjects if obj.shape == "planet" and not obj == playerPlanet]
                 if not paused and not any(planet for planet in planets if planet.openShop) and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.3 and bullets > 0:
                     # Play sfx
                     shootsfx.play()
@@ -1415,7 +1507,7 @@ while running:
             pygame.mixer.music.set_volume(0.4)
         
         # Softlock Prevention
-        planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
+        planets = [obj for obj in gameObjects if obj.shape == "planet" and not obj == playerPlanet]
         allShopClosed = all(planet for planet in planets if planetEnemies[planet] != False)
         if bullets <= 0 and inventory.inventory["Metal"]["amount"] < 15 or bullets <= 0 and not allShopClosed:
             deathsfx.play()
@@ -1425,7 +1517,8 @@ while running:
         """Shop"""
         planetRadius = 150
 
-        planets = [obj for obj in gameObjects if obj.shape == "circle" and not obj == playerPlanet]
+        planetColors = ["planet-red","planet-orange","planet-green","planet-cyan","planet-blue", "planet-purple"]
+        planets = [obj for obj in gameObjects if obj.shape in planetColors or obj.shape == "planet" and not obj == playerPlanet]
         for planet in planets:
             player = gameObjects[len(gameObjects)-1]
             pvx = player.position["x"] - planet.position["x"]
@@ -1434,7 +1527,11 @@ while running:
             dist = math.sqrt(pvx**2 + pvy**2)
 
             if planetEnemies[planet] == []:
+                color = random.choice(planetColors)
+                planet.shape = color
+                planet.gensprite()
                 planetEnemies[planet] = False
+                dingsfx.play()
                 print("New Planet Cleared")
             
             keys = pygame.key.get_pressed()
@@ -1519,6 +1616,9 @@ while running:
         win.blit(icons[3], (10, 305))
 
         pygame.display.flip()
+
+    pygame.mixer.music.fadeout(500)
+    time.sleep(0.5)
 
 pygame.quit()
 sys.exit()
