@@ -36,6 +36,16 @@ explodesfx.set_volume(0.8)
 noammosfx.set_volume(0.8)
 hitsfx.set_volume(0.8)
 
+assets = {
+    "planet":pygame.image.load("./resources/sprites/planets/planet.png").convert_alpha(),
+    "planet-red":pygame.image.load("./resources/sprites/planets/planet-red.png").convert_alpha(),
+    "planet-orange":pygame.image.load("./resources/sprites/planets/planet-orange.png").convert_alpha(),
+    "planet-green":pygame.image.load("./resources/sprites/planets/planet-green.png").convert_alpha(),
+    "planet-blue":pygame.image.load("./resources/sprites/planets/planet-blue.png").convert_alpha(),
+    "planet-purple":pygame.image.load("./resources/sprites/planets/planet-purple.png").convert_alpha(),
+    "bullet":pygame.image.load("./resources/sprites/bullet.png").convert_alpha()
+    }
+
 # Play the song indefinitely
 pygame.mixer.music.play(loops=-1)
 
@@ -192,7 +202,7 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet.png').convert_alpha()
+            img = assets["planet"]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -205,7 +215,7 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet-red.png').convert_alpha()
+            img = assets["planet-red"]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -218,7 +228,7 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet-orange.png').convert_alpha()
+            img = assets["planet-orange"]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -231,7 +241,7 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet-green.png').convert_alpha()
+            img = assets["planet-green"]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -244,7 +254,7 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet-blue.png').convert_alpha()
+            img = assets["planet-blue"]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -257,7 +267,7 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = pygame.image.load('./resources/sprites/planets/planet-purple.png').convert_alpha()
+            img = assets["planet-purple"]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -278,7 +288,7 @@ class gameObject():
             presprite.blit(p, (500/2-new_width/2*self.scale, 500/2-new_height/2*self.scale))
         elif self.shape == "bullet":
             # Load the original image
-            img = pygame.image.load('./resources/sprites/bullet.png').convert_alpha()
+            img = assets["bullet"]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -1367,6 +1377,7 @@ while running:
     pygame.mixer.music.set_volume(0)
     pygame.mixer.music.play(loops=-1)
     fadeInMusic(10)
+    planetColors = ["planet-red","planet-orange","planet-green","planet-blue", "planet-purple"]
 
     """Main Game Loop"""
     while ingame:
@@ -1379,17 +1390,15 @@ while running:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_ESCAPE]:
                     paused = not paused
-                    planets = [obj for obj in gameObjects if obj.shape == "planet" and not obj == playerPlanet]
+                    planets = [obj for obj in gameObjects if obj.shape in planetColors and not obj == playerPlanet]
                     for planet in planets:
                         planet.openShop = False
                     shopOpen = False
-                    for elem in shopUi:
-                        uiElements[uiElements.index(elem)].hidden = True
                 if keys[pygame.K_e]:
                     if not paused:
                         openShop = True
             if event.type == pygame.MOUSEBUTTONDOWN:
-                planets = [obj for obj in gameObjects if obj.shape == "planet" and not obj == playerPlanet]
+                planets = [obj for obj in gameObjects if obj.shape in planetColors and not obj == playerPlanet]
                 if not paused and not any(planet for planet in planets if planet.openShop) and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.3 and bullets > 0:
                     # Play sfx
                     shootsfx.play()
@@ -1503,8 +1512,6 @@ while running:
 
         """Shop"""
         planetRadius = 150
-
-        planetColors = ["planet-red","planet-orange","planet-green","planet-blue", "planet-purple"]
         planets = [obj for obj in gameObjects if obj.shape in planetColors or obj.shape == "planet" and not obj == playerPlanet]
         for planet in planets:
             player = gameObjects[len(gameObjects)-1]
