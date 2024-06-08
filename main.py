@@ -358,6 +358,16 @@ class gameObject():
             presprite.blit(p, (500/2-new_width/2*self.scale, 500/2-new_height/2*self.scale))
         elif self.shape == "rect":
             pygame.draw.rect(presprite, (0,0,255), (0,0,500,500))
+        elif self.shape == "wormhole":
+            # Load the original image
+            img = pygame.image.load('./resources/sprites/wormhole.png').convert_alpha()
+
+            # Resize the image
+            #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
+            new_width = int(img.get_width() * 0.5)
+            new_height = int(img.get_height() * 0.5)
+            p = pygame.transform.scale(img, (new_width, new_height))
+            presprite.blit(p, (500/2-new_width/2*self.scale, 500/2-new_height/2*self.scale))
 
         # Rotate the presprite
         self.original_sprite = presprite
@@ -728,6 +738,9 @@ def speeder(self):
                 particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (random.randint(-10, 10),random.randint(-10, 10)),100,particleShape.explosion, 0.02)
             #particleManager.spawnParticle((self.rotated_rect.topleft[0]+self.position["x"], self.rotated_rect.topleft[1]+self.position["y"]), (0,0), 100, particleShape.shockwave, 0)
             
+            global planetEnemies
+            global enemyPlanets
+
             explodesfx.play()
 
             gameCamera.runCameraAction(cameraAction.cameraShake)
@@ -1135,6 +1148,19 @@ def leave(self):
     sys.exit()
 running = True
 uiOpen = False
+
+def wormHoleScript(self):
+    global player
+    if player.position["x"] > self.position["x"]+50 and player.position["x"] < self.position["x"]-50:
+        if player.position["y"] > self.position["y"]+50 and player.position["y"] < self.position["y"]-50:
+            global tutorial
+            tutorial = False
+            global gameData
+
+            gameData["hasPlayed"] = True
+            json_gameData = json.dumps(gameData, indent=4)
+            with open("./resources/data/gameData.json", 'w') as dataFile:
+                dataFile.write(json_gameData)
 
 def game():
     """Game"""
@@ -1667,19 +1693,42 @@ def tutorialScript():
     global gameObjects
     global gameTimer
     global paused
+    global inventory
+    global particleManager
+    global enemyPlanets
+    global planetEnemies
 
     gameCamera = camera()
     gameTimer = timer()
-
     gameObjects = []
+
+    enemyPlanets = {}
+    planetEnemies = {}
+
+    particleManager = particleSystem(gameCamera)
+    
+    inventory = inventoryManager()
+    inventory.init_item("Credit")
+    inventory.init_item("Fuel Cell")
+    inventory.init_item("Metal")
 
     playerPlanet = gameObject(250,250,"planet", 0, 1, [], gameTimer)
     playerPlanet.shape = "planet-green"
     playerPlanet.gensprite()
     enemyPlanet = gameObject(1500,250,"planet", 0, 1, [], gameTimer)
+    enemyPlanet.openShop = False
+    planetEnemies[enemyPlanet] = []
     gameObjects.insert(0,playerPlanet)
     gameObjects.insert(0,enemyPlanet)
     gameObjects.append(gameObject(250,250,"mesh", 0, 1, [playerScript], gameTimer))
+    
+    enemy001 = gameObject(1500,250,"speeder", 0, 1, [speeder], gameTimer)
+    enemy001.isEnemy = True
+    enemy001.gotoHome = True
+    enemy001.home = {"x":1500, "y":250}
+    enemyPlanets[enemy001] = enemyPlanet
+    planetEnemies[enemyPlanet].append(enemy001)
+    gameObjects.insert(len(gameObjects)-1,enemy001)
 
     planetColors = ["planet-red","planet-orange","planet-green","planet-blue", "planet-purple"]
 
@@ -1715,13 +1764,11 @@ def tutorialScript():
 
     uiElements.append(controls)
 
-    prtl = pygame.image.load("./resources/sprites/wormhole.png")
-    prtlWid = prtl.get_width() * 0.5
-    prtlHght = prtl.get_height() * 0.5
-    prtl = pygame.transform.scale(prtl, (prtlWid, prtlHght))
+    global player
+    player = gameObjects[len(gameObjects)-1]
 
-    controls = uiElement(uiForm.panel, (500, 500), (0, 0), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "", [])
-    controls.sprite.blit(prtl, (250-prtlWid/2,250-prtlHght/2))
+    wormHole = gameObject(2000,250,"wormhole", 0, 1, [wormHoleScript], gameTimer)
+    gameObjects.insert(0, wormHole)
 
     uiElements.append(controls)
 
@@ -1771,23 +1818,37 @@ def tutorialScript():
 
         uiElements[4].position["x"] = gameCamera.position["x"] - 100 + uiElements[4].sprite.get_rect().topleft[0] + uiElements[4].scale["x"]/2
         uiElements[4].position["y"] = gameCamera.position["y"] - 175 + uiElements[4].sprite.get_rect().topleft[1] + uiElements[4].scale["y"]/2
-        
-        uiElements[5].position["x"] = gameCamera.position["x"] + 1500 + uiElements[5].sprite.get_rect().topleft[0] + uiElements[5].scale["x"]/2
-        uiElements[5].position["y"] = gameCamera.position["y"] - 225 + uiElements[5].sprite.get_rect().topleft[1] + uiElements[5].scale["y"]/2
-
-        if gameObjects[len(gameObjects)-1].position["x"] > 1750:
-            tutorial = False
-            global gameData
-
-            gameData["hasPlayed"] = True
-            json_gameData = json.dumps(gameData, indent=4)
-            with open("./resources/data/gameData.json", 'w') as dataFile:
-                dataFile.write(json_gameData)
 
         pygame.time.Clock().tick(6000)
         gameTimer.frame()
 
         pygame.display.flip()
+
+        planetRadius = 150
+        planets = [obj for obj in gameObjects if obj.shape in planetColors or obj.shape == "planet" and not obj == playerPlanet]
+        for planet in planets:
+            player = gameObjects[len(gameObjects)-1]
+            pvx = player.position["x"] - planet.position["x"]
+            pvy = player.position["y"] - planet.position["y"]
+
+            dist = math.sqrt(pvx**2 + pvy**2)
+
+            if planetEnemies[planet] == []:
+                color = random.choice(planetColors)
+                planet.shape = color
+                planet.gensprite()
+                planetEnemies[planet] = False
+                dingsfx.play()
+                print("New Planet Cleared")
+
+            if planet.openShop and dist > planetRadius or planet.openShop and openShop:
+                uiOpen = False
+                planet.openShop = False
+                openShop = False
+            if dist < planetRadius and planetEnemies[planet] == False and openShop:
+                planet.openShop = True
+                uiOpen = True
+                openShop = False
 
     titleRenderer = uiHandler()
 
