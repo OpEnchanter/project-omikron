@@ -1,7 +1,8 @@
-import pygame, math, sys, time, random, asyncio
+import pygame, math, sys, time, random, json
 
 score = 0
 ingame = True
+tutorial = True
 
 globalMenuPressed = False
 
@@ -43,6 +44,12 @@ assets = {
     "planet-green":pygame.image.load("./resources/sprites/planets/planet-green.png").convert_alpha(),
     "planet-blue":pygame.image.load("./resources/sprites/planets/planet-blue.png").convert_alpha(),
     "planet-purple":pygame.image.load("./resources/sprites/planets/planet-purple.png").convert_alpha(),
+    "planet-alt":pygame.image.load("./resources/sprites/planets/planet-alt.png").convert_alpha(),
+    "planet-red-alt":pygame.image.load("./resources/sprites/planets/planet-red-alt.png").convert_alpha(),
+    "planet-orange-alt":pygame.image.load("./resources/sprites/planets/planet-orange-alt.png").convert_alpha(),
+    "planet-green-alt":pygame.image.load("./resources/sprites/planets/planet-green-alt.png").convert_alpha(),
+    "planet-blue-alt":pygame.image.load("./resources/sprites/planets/planet-blue-alt.png").convert_alpha(),
+    "planet-purple-alt":pygame.image.load("./resources/sprites/planets/planet-purple-alt.png").convert_alpha(),
     "bullet":pygame.image.load("./resources/sprites/bullet.png").convert_alpha()
     }
 
@@ -202,7 +209,10 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = assets["planet"]
+            variations = ["planet", "planet-alt"]
+            choice = random.choice(variations)
+            self.pattern = variations.index(choice)
+            img = assets[choice]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -215,7 +225,11 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = assets["planet-red"]
+            variations = ["planet-red", "planet-red-alt"]
+            for variant in variations:
+                if variations.index(variant) != self.pattern:
+                    variations.remove(variant)
+            img = assets[random.choice(variations)]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -228,7 +242,11 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = assets["planet-orange"]
+            variations = ["planet-orange", "planet-orange-alt"]
+            for variant in variations:
+                if variations.index(variant) != self.pattern:
+                    variations.remove(variant)
+            img = assets[random.choice(variations)]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -241,7 +259,11 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = assets["planet-green"]
+            variations = ["planet-green", "planet-green-alt"]
+            for variant in variations:
+                if variations.index(variant) != self.pattern:
+                    variations.remove(variant)
+            img = assets[random.choice(variations)]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -254,7 +276,11 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = assets["planet-blue"]
+            variations = ["planet-blue", "planet-blue-alt"]
+            for variant in variations:
+                if variations.index(variant) != self.pattern:
+                    variations.remove(variant)
+            img = assets[random.choice(variations)]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -267,7 +293,11 @@ class gameObject():
             presprite = pygame.Surface((1000, 1000), pygame.SRCALPHA)
             presprite.fill(pygame.SRCALPHA)
             # Load the original image
-            img = assets["planet-purple"]
+            variations = ["planet-purple", "planet-purple-alt"]
+            for variant in variations:
+                if variations.index(variant) != self.pattern:
+                    variations.remove(variant)
+            img = assets[random.choice(variations)]
 
             # Resize the image
             #pygame.draw.rect(presprite, (0, 0, 0), (250-25*scale, 250-25*scale, 50*scale, 50*scale))
@@ -1100,109 +1130,25 @@ def fadeInMusic(fadeInLen = int):
         pygame.mixer.music.set_volume((0.2/fadeInLen)*x)
         time.sleep(0.01)
 
-
-
 def leave(self):
     pygame.quit()
     sys.exit()
 running = True
 uiOpen = False
-while running: 
 
-    pygame.mixer.music.load('./resources/audio/project-omikron-menu.wav')
-    pygame.mixer.music.set_volume(0.2)
-    pygame.mixer.music.play(loops=-1)
-
-    """Title Screen"""
-    globalMenuPressed = False
-    titleRenderer = uiHandler()
-    titleUI = []
-
-    mouseDown = pygame.mouse.get_pressed()[0]
-
-    titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, win.get_height()/2-150), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Project: Omikron", []))
-    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2-75), (115,115,115), (255,255,255), 24, (45,45,45), "Play", [play]))
-    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2), (115,115,115), (255,255,255), 24, (45,45,45), "Quit", [leave]))
-
-    shownBtn = [btn for btn in titleUI if btn.form == uiForm.button and not btn.hidden]
-    cur_hovered = 0
-
-    win.fill((0,0,0))
-    titleRenderer.render(titleUI)
-    pygame.display.flip()
-
-    fadeInMusic(10)
-
-    while titleScreen:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                titleScreen = False
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.JOYBUTTONDOWN:
-                if event.button == 14:
-                    globalMenuPressed = True
-
-                # Controller Menu Navigation
-                shownBtn = [btn for btn in titleUI if btn.form == uiForm.button and not btn.hidden]
-                if event.button == 11:
-                    try:
-                        if titleUI[titleUI.index(shownBtn[cur_hovered])] in shownBtn:
-                            cur_hovered -= 1
-                        else:
-                            cur_hovered = 0
-                    except:
-                        cur_hovered = 0
-                    if cur_hovered < 0:
-                        cur_hovered = len(shownBtn)-1
-
-                    for btn in shownBtn:
-                        if btn in titleUI:
-                            titleUI[titleUI.index(btn)].hovered = False
-
-                    try:
-                        titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
-                    except:
-                        pass
-                if event.button == 12:
-                    try:
-                        if titleUI[titleUI.index(shownBtn[cur_hovered])] in shownBtn:
-                            cur_hovered += 1
-                        else:
-                            cur_hovered = 0
-                    except:
-                        cur_hovered = 0
-                    if cur_hovered > len(shownBtn)-1:
-                        cur_hovered = 0
-
-                    for btn in shownBtn:
-                        if btn in titleUI:
-                            titleUI[titleUI.index(btn)].hovered = False
-                    try:
-                        titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
-                    except:
-                        pass
-
-        titleUI[0].scale["x"] = win.get_size()[0]
-        titleUI[0].relsprite()
-
-        if not mouseDown:
-            titleUI[1].position["x"] = (win.get_width()/2)-(350/2)
-            titleUI[1].frame()
-
-            titleUI[2].position["x"] = (win.get_width()/2)-(350/2)
-            titleUI[2].frame()
-
-        if not pygame.mouse.get_pressed()[0]:
-            mouseDown = False
-
-        if titleScreen:
-            win.fill((0,0,0))
-            titleRenderer.render(titleUI)
-            pygame.display.flip()
-
-
+def game():
     """Game"""
+
+    global paused
+    global gameObjects
+    global gameCamera
+    global gameTimer
+    global inventory
+    global particleManager
+    global enemyPlanets
+    global planetEnemies
+    global bullets
+    global ingame
 
     pygame.mixer.music.fadeout(500)
     time.sleep(0.5)
@@ -1613,6 +1559,256 @@ while running:
 
     pygame.mixer.music.fadeout(500)
     time.sleep(0.5)
+def title():
+    
+    """Title Screen"""
 
+    global titleScreen
+    titleScreen = True
+
+    pygame.mixer.music.load('./resources/audio/project-omikron-menu.wav')
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play(loops=-1)
+
+    globalMenuPressed = False
+    titleRenderer = uiHandler()
+    titleUI = []
+
+    mouseDown = pygame.mouse.get_pressed()[0]
+
+    titleUI.append(uiElement(uiForm.panel, (win.get_size()[0], 50), (0, win.get_height()/2-150), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Project: Omikron", []))
+    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2-75), (115,115,115), (255,255,255), 24, (45,45,45), "Play", [play]))
+    titleUI.append(uiElement(uiForm.button, (350, 50), (win.get_width()/2-350/2, win.get_height()/2), (115,115,115), (255,255,255), 24, (45,45,45), "Quit", [leave]))
+
+    shownBtn = [btn for btn in titleUI if btn.form == uiForm.button and not btn.hidden]
+    cur_hovered = 0
+
+    win.fill((0,0,0))
+    titleRenderer.render(titleUI)
+    pygame.display.flip()
+
+    fadeInMusic(10)
+
+    while titleScreen:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                titleScreen = False
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.JOYBUTTONDOWN:
+                if event.button == 14:
+                    globalMenuPressed = True
+
+                # Controller Menu Navigation
+                shownBtn = [btn for btn in titleUI if btn.form == uiForm.button and not btn.hidden]
+                if event.button == 11:
+                    try:
+                        if titleUI[titleUI.index(shownBtn[cur_hovered])] in shownBtn:
+                            cur_hovered -= 1
+                        else:
+                            cur_hovered = 0
+                    except:
+                        cur_hovered = 0
+                    if cur_hovered < 0:
+                        cur_hovered = len(shownBtn)-1
+
+                    for btn in shownBtn:
+                        if btn in titleUI:
+                            titleUI[titleUI.index(btn)].hovered = False
+
+                    try:
+                        titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
+                    except:
+                        pass
+                if event.button == 12:
+                    try:
+                        if titleUI[titleUI.index(shownBtn[cur_hovered])] in shownBtn:
+                            cur_hovered += 1
+                        else:
+                            cur_hovered = 0
+                    except:
+                        cur_hovered = 0
+                    if cur_hovered > len(shownBtn)-1:
+                        cur_hovered = 0
+
+                    for btn in shownBtn:
+                        if btn in titleUI:
+                            titleUI[titleUI.index(btn)].hovered = False
+                    try:
+                        titleUI[titleUI.index(shownBtn[cur_hovered])].hovered = True
+                    except:
+                        pass
+
+        titleUI[0].scale["x"] = win.get_size()[0]
+        titleUI[0].relsprite()
+
+        if not mouseDown:
+            titleUI[1].position["x"] = (win.get_width()/2)-(350/2)
+            titleUI[1].frame()
+
+            titleUI[2].position["x"] = (win.get_width()/2)-(350/2)
+            titleUI[2].frame()
+
+        if not pygame.mouse.get_pressed()[0]:
+            mouseDown = False
+
+        if titleScreen:
+            win.fill((0,0,0))
+            titleRenderer.render(titleUI)
+            pygame.display.flip()
+
+def tutorialScript():
+    """Tutorial Screen"""
+    global tutorial
+
+    tutorial = True
+
+    global gameCamera
+    global gameObjects
+    global gameTimer
+    global paused
+
+    gameCamera = camera()
+    gameTimer = timer()
+
+    gameObjects = []
+
+    playerPlanet = gameObject(250,250,"planet", 0, 1, [], gameTimer)
+    playerPlanet.shape = "planet-green"
+    playerPlanet.gensprite()
+    enemyPlanet = gameObject(1500,250,"planet", 0, 1, [], gameTimer)
+    gameObjects.insert(0,playerPlanet)
+    gameObjects.insert(0,enemyPlanet)
+    gameObjects.append(gameObject(250,250,"mesh", 0, 1, [playerScript], gameTimer))
+
+    planetColors = ["planet-red","planet-orange","planet-green","planet-blue", "planet-purple"]
+
+    lastShotTime = 0
+
+    paused = False
+
+    #Initialize ui
+    uiManager = uiHandler()
+    uiElements = []
+
+    uiElements.append(uiElement(uiForm.panel, (1000, 50), (0, 0), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "This is your home...", []))
+    uiElements.append(uiElement(uiForm.panel, (1500, 50), (0, 0), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Neighboring planets have been taken over...", []))
+    uiElements.append(uiElement(uiForm.panel, (1000, 50), (0, 0), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "You Must Save Them...", []))
+
+    controlsIco = pygame.image.load("./resources/sprites/wasd-ico.png")
+    ctrlNewWidth = controlsIco.get_width() * 0.5
+    ctrlNewHeight = controlsIco.get_height() * 0.5
+    controlsIco = pygame.transform.scale(controlsIco, (ctrlNewWidth, ctrlNewHeight))
+
+    controls = uiElement(uiForm.panel, (1000, 500), (0, 0), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Move with ", [])
+    controls.sprite.blit(controlsIco, (650-ctrlNewWidth/2,250-ctrlNewHeight/2))
+
+    uiElements.append(controls)
+
+    shootIco = pygame.image.load("./resources/sprites/lmb.png")
+    shtNewWidth = shootIco.get_width() * 0.5
+    shtNewHeight = shootIco.get_height() * 0.5
+    shootIco = pygame.transform.scale(shootIco, (shtNewWidth, shtNewHeight))
+
+    controls = uiElement(uiForm.panel, (1000, 500), (0, 0), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Shoot with ", [])
+    controls.sprite.blit(shootIco, (650-shtNewWidth/2,250-shtNewWidth/2))
+
+    uiElements.append(controls)
+
+    prtl = pygame.image.load("./resources/sprites/wormhole.png")
+    prtlWid = prtl.get_width() * 0.5
+    prtlHght = prtl.get_height() * 0.5
+    prtl = pygame.transform.scale(prtl, (prtlWid, prtlHght))
+
+    controls = uiElement(uiForm.panel, (500, 500), (0, 0), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "", [])
+    controls.sprite.blit(prtl, (250-prtlWid/2,250-prtlHght/2))
+
+    uiElements.append(controls)
+
+
+    while tutorial:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                tutorial = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                planets = [obj for obj in gameObjects if obj.shape in planetColors and not obj == playerPlanet]
+                if not paused and not any(planet for planet in planets if planet.openShop) and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.3:
+                    # Play sfx
+                    shootsfx.play()
+                    # Spawn a bullet
+                    angle = gameObjects[len(gameObjects)-1].angle
+                    bullet = gameObject(gameObjects[len(gameObjects)-1].position["x"], gameObjects[len(gameObjects)-1].position["y"], "bullet", -angle, 1, [playerBullet], gameTimer)
+                    angle_rad = math.radians(-angle+90)
+                    bullet.xvel = math.sin(angle_rad) * 1000
+                    bullet.yvel = math.cos(angle_rad) * 1000
+                    bullet.angle = -angle
+                    gameObjects.insert(len(gameObjects)-1, bullet)
+                    lastShotTime = time.time()
+        
+        win.fill((0,0,0))
+        
+        
+        gameCamera.render(gameObjects)
+
+        uiManager.render(uiElements)
+
+        for obj in gameObjects:
+            obj.frame()
+        for elem in uiElements:
+            elem.frame()
+
+        uiElements[0].position["x"] = gameCamera.position["x"] + 250 + uiElements[0].sprite.get_rect().topleft[0] - uiElements[0].scale["x"]/2
+        uiElements[0].position["y"] = gameCamera.position["y"] - 50 + uiElements[0].sprite.get_rect().topleft[1] + uiElements[0].scale["y"]/2
+
+        uiElements[1].position["x"] = gameCamera.position["x"] + 250 + uiElements[1].sprite.get_rect().topleft[0] - uiElements[1].scale["x"]/2
+        uiElements[1].position["y"] = gameCamera.position["y"] + 425 + uiElements[1].sprite.get_rect().topleft[1] + uiElements[1].scale["y"]/2
+
+        uiElements[2].position["x"] = gameCamera.position["x"] + 250 + uiElements[2].sprite.get_rect().topleft[0] - uiElements[2].scale["x"]/2
+        uiElements[2].position["y"] = gameCamera.position["y"] + 475 + uiElements[2].sprite.get_rect().topleft[1] + uiElements[2].scale["y"]/2
+
+        uiElements[3].position["x"] = gameCamera.position["x"] - 100 + uiElements[3].sprite.get_rect().topleft[0] + uiElements[3].scale["x"]/2
+        uiElements[3].position["y"] = gameCamera.position["y"] - 275 + uiElements[3].sprite.get_rect().topleft[1] + uiElements[3].scale["y"]/2
+
+        uiElements[4].position["x"] = gameCamera.position["x"] - 100 + uiElements[4].sprite.get_rect().topleft[0] + uiElements[4].scale["x"]/2
+        uiElements[4].position["y"] = gameCamera.position["y"] - 175 + uiElements[4].sprite.get_rect().topleft[1] + uiElements[4].scale["y"]/2
+        
+        uiElements[5].position["x"] = gameCamera.position["x"] + 1500 + uiElements[5].sprite.get_rect().topleft[0] + uiElements[5].scale["x"]/2
+        uiElements[5].position["y"] = gameCamera.position["y"] - 225 + uiElements[5].sprite.get_rect().topleft[1] + uiElements[5].scale["y"]/2
+
+        if gameObjects[len(gameObjects)-1].position["x"] > 1750:
+            tutorial = False
+            global gameData
+
+            gameData["hasPlayed"] = True
+            json_gameData = json.dumps(gameData, indent=4)
+            with open("./resources/data/gameData.json", 'w') as dataFile:
+                dataFile.write(json_gameData)
+
+        pygame.time.Clock().tick(6000)
+        gameTimer.frame()
+
+        pygame.display.flip()
+
+    titleRenderer = uiHandler()
+
+    titleUI = [uiElement(uiForm.panel, (350, 50), (win.get_width()/2-350/2, 150), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Loading...", [leave])]
+
+    win.fill((0,0,0))
+
+    titleRenderer.render(titleUI)
+
+    pygame.display.flip()
+
+
+gameData = False
+with open("./resources/data/gameData.json", 'r+') as dataFile:
+    gameData = json.load(dataFile)
+
+tutorial = not gameData["hasPlayed"]
+while running: 
+    title()
+    if tutorial:
+        tutorialScript()
+    game()
 pygame.quit()
 sys.exit()
