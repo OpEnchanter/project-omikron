@@ -1156,7 +1156,6 @@ def wormHoleScript(self):
             global tutorial
             tutorial = False
             global gameData
-
             gameData["hasPlayed"] = True
             json_gameData = json.dumps(gameData, indent=4)
             with open("./resources/data/gameData.json", 'w') as dataFile:
@@ -1685,6 +1684,13 @@ def title():
 
 def tutorialScript():
     """Tutorial Screen"""
+
+    pygame.mixer.fadeout(1000)
+    time.sleep(1)
+    pygame.mixer.music.load('./resources/audio/project-omikron-tutorial.wav')
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play(loops=-1)
+
     global tutorial
 
     tutorial = True
@@ -1701,6 +1707,8 @@ def tutorialScript():
     gameCamera = camera()
     gameTimer = timer()
     gameObjects = []
+
+    openShop = False
 
     enemyPlanets = {}
     planetEnemies = {}
@@ -1825,7 +1833,7 @@ def tutorialScript():
         pygame.display.flip()
 
         planetRadius = 150
-        planets = [obj for obj in gameObjects if obj.shape in planetColors or obj.shape == "planet" and not obj == playerPlanet]
+        planets = [enemyPlanet]
         for planet in planets:
             player = gameObjects[len(gameObjects)-1]
             pvx = player.position["x"] - planet.position["x"]
