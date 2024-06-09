@@ -1150,9 +1150,8 @@ running = True
 uiOpen = False
 
 def wormHoleScript(self):
-    global player
-    if player.position["x"] > self.position["x"]+50 and player.position["x"] < self.position["x"]-50:
-        if player.position["y"] > self.position["y"]+50 and player.position["y"] < self.position["y"]-50:
+    if player.position["x"] > self.position["x"]-50 and player.position["x"] < self.position["x"]+50:
+        if player.position["y"] > self.position["y"]-50 and player.position["y"] < self.position["y"]+50:
             global tutorial
             tutorial = False
             global gameData
@@ -1357,6 +1356,8 @@ def game():
                 running = False
                 ingame = False
                 titleScreen = False
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.KEYDOWN:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_ESCAPE]:
@@ -1785,6 +1786,8 @@ def tutorialScript():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 tutorial = False
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 planets = [obj for obj in gameObjects if obj.shape in planetColors and not obj == playerPlanet]
                 if not paused and not any(planet for planet in planets if planet.openShop) and pygame.mouse.get_pressed()[0]  and time.time() - lastShotTime > 0.3:
@@ -1821,10 +1824,10 @@ def tutorialScript():
         uiElements[2].position["x"] = gameCamera.position["x"] + 250 + uiElements[2].sprite.get_rect().topleft[0] - uiElements[2].scale["x"]/2
         uiElements[2].position["y"] = gameCamera.position["y"] + 475 + uiElements[2].sprite.get_rect().topleft[1] + uiElements[2].scale["y"]/2
 
-        uiElements[3].position["x"] = gameCamera.position["x"] - 100 + uiElements[3].sprite.get_rect().topleft[0] + uiElements[3].scale["x"]/2
+        uiElements[3].position["x"] = gameCamera.position["x"] - 175 + uiElements[3].sprite.get_rect().topleft[0] + uiElements[3].scale["x"]/2
         uiElements[3].position["y"] = gameCamera.position["y"] - 275 + uiElements[3].sprite.get_rect().topleft[1] + uiElements[3].scale["y"]/2
 
-        uiElements[4].position["x"] = gameCamera.position["x"] - 100 + uiElements[4].sprite.get_rect().topleft[0] + uiElements[4].scale["x"]/2
+        uiElements[4].position["x"] = gameCamera.position["x"] - 175 + uiElements[4].sprite.get_rect().topleft[0] + uiElements[4].scale["x"]/2
         uiElements[4].position["y"] = gameCamera.position["y"] - 175 + uiElements[4].sprite.get_rect().topleft[1] + uiElements[4].scale["y"]/2
 
         pygame.time.Clock().tick(6000)
