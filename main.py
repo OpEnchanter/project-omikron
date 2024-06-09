@@ -1160,6 +1160,32 @@ def wormHoleScript(self):
             with open("./resources/data/gameData.json", 'w') as dataFile:
                 dataFile.write(json_gameData)
 
+def save(self):
+    data = ""
+    with open("./resources/data/gameData.json", "r") as gameData:
+        data = json.load(gameData)
+    data["saves"]["save0"]  = []
+    for gameObject in gameObjects:
+        data["saves"]["save0"].append({
+            "position":gameObject.position,
+            "angle":gameObject.angle,
+            "scale":gameObject.scale,
+            "shape":gameObject.shape,
+            "xvel":gameObject.xvel,
+            "yvel":gameObject.yvel,
+            "isEnemy":gameObject.isEnemy,
+            "followingPlayer":gameObject.followingPlayer,
+            "rendered":gameObject.rendered,
+            "hp":gameObject.hp,
+            "maxhp":gameObject.maxhp,
+            "lastShotTime":gameObject.lastShotTime,
+            "target_angle":gameObject.target_angle,
+        })
+    with open("./resources/data/gameData.json", "w") as gameData:
+        json_data = json.dumps(data, indent=4)
+        gameData.write(json_data)
+        
+
 def game():
     """Game"""
 
@@ -1264,7 +1290,7 @@ def game():
 
     """Create UI"""
     uiElements.append(uiElement(uiForm.panel, (500, 500), (win.get_width()/2-250, win.get_height()/2-250), (100, 100, 100), (0,0,0), 24, (45,45,45), "", []))
-    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 345), (145, 145, 145), (0,0,0), 24, (45,45,45), "Null", []))
+    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 345), (145, 145, 145), (0,0,0), 24, (45,45,45), "Save", [save]))
     uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 385), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
     uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 425), (145, 145, 145), (0,0,0), 24, (45,45,45), "Settings", [openSettings]))
     uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 465), (145, 145, 145), (0,0,0), 24, (45,45,45), "Home", [gotoTitle]))
