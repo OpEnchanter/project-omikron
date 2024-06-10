@@ -1161,29 +1161,140 @@ def wormHoleScript(self):
                 dataFile.write(json_gameData)
 
 def save(self):
+    global playerPlanet
     data = ""
     with open("./resources/data/gameData.json", "r") as gameData:
         data = json.load(gameData)
-    data["saves"]["save0"]  = []
-    for gameObject in gameObjects:
-        data["saves"]["save0"].append({
-            "position":gameObject.position,
-            "angle":gameObject.angle,
-            "scale":gameObject.scale,
-            "shape":gameObject.shape,
-            "xvel":gameObject.xvel,
-            "yvel":gameObject.yvel,
-            "isEnemy":gameObject.isEnemy,
-            "followingPlayer":gameObject.followingPlayer,
-            "rendered":gameObject.rendered,
-            "hp":gameObject.hp,
-            "maxhp":gameObject.maxhp,
-            "lastShotTime":gameObject.lastShotTime,
-            "target_angle":gameObject.target_angle,
-        })
+    data["saves"]["save0"] = {}
+    data["saves"]["save0"]["objects"] = []
+    for obj in gameObjects:
+        enemyShapes = ["speeder", "brute"]
+        startingPlanet = obj == playerPlanet
+        planets = ["planet", "planet-red","planet-orange","planet-green","planet-blue","planet-purple"]
+        if not obj.shape in enemyShapes:
+            if obj.shape in planets:
+                data["saves"]["save0"]["objects"].append({
+                    "position":obj.position,
+                    "angle":obj.angle,
+                    "scale":obj.scale,
+                    "shape":obj.shape,
+                    "xvel":obj.xvel,
+                    "yvel":obj.yvel,
+                    "isEnemy":obj.isEnemy,
+                    "followingPlayer":obj.followingPlayer,
+                    "rendered":obj.rendered,
+                    "hp":obj.hp,
+                    "maxhp":obj.maxhp,
+                    "lastShotTime":obj.lastShotTime,
+                    "target_angle":obj.target_angle,
+                    "startingPlanet":startingPlanet,
+                    "pattern":obj.pattern
+                })
+            else:
+                data["saves"]["save0"]["objects"].append({
+                    "position":obj.position,
+                    "angle":obj.angle,
+                    "scale":obj.scale,
+                    "shape":obj.shape,
+                    "xvel":obj.xvel,
+                    "yvel":obj.yvel,
+                    "isEnemy":obj.isEnemy,
+                    "followingPlayer":obj.followingPlayer,
+                    "rendered":obj.rendered,
+                    "hp":obj.hp,
+                    "maxhp":obj.maxhp,
+                    "lastShotTime":obj.lastShotTime,
+                    "target_angle":obj.target_angle,
+                    "startingPlanet":startingPlanet,
+                })
+        else:
+            data["saves"]["save0"]["objects"].append({
+                "position":obj.position,
+                "angle":obj.angle,
+                "scale":obj.scale,
+                "shape":obj.shape,
+                "xvel":obj.xvel,
+                "yvel":obj.yvel,
+                "isEnemy":obj.isEnemy,
+                "followingPlayer":obj.followingPlayer,
+                "rendered":obj.rendered,
+                "hp":obj.hp,
+                "maxhp":obj.maxhp,
+                "lastShotTime":obj.lastShotTime,
+                "target_angle":obj.target_angle,
+                "home":obj.home,
+                "startingPlanet":startingPlanet
+            })
+    data["saves"]["save0"]["planetEnemies"] = {}
+    data["saves"]["save0"]["enemyPlanets"] = {}
+    for key, objs in planetEnemies.items():
+        data["saves"]["save0"]["planetEnemies"][gameObjects.index(key)] = []
+        if not objs == False:
+            for obj in objs:
+                data["saves"]["save0"]["planetEnemies"][gameObjects.index(key)].append(gameObjects.index(obj))
+        else:
+            data["saves"]["save0"]["planetEnemies"][gameObjects.index(key)] = False
+    for key, obj in enemyPlanets.items():
+        data["saves"]["save0"]["enemyPlanets"][gameObjects.index(key)] = gameObjects.index(obj)
     with open("./resources/data/gameData.json", "w") as gameData:
         json_data = json.dumps(data, indent=4)
         gameData.write(json_data)
+
+def load(self):
+    global playerPlanet
+    global gameObjects
+    global enemyPlanets
+    global planetEnemies
+    gameObjects = []
+    enemyPlanets = {}
+    planetEnemies = {}
+    objScripts = {
+        "planet":[],
+        "planet-red":[],
+        "planet-orange":[],
+        "planet-green":[],
+        "planet-blue":[],
+        "planet-purple":[],
+        "mesh":[playerScript],
+        "bullet":[],
+        "speeder":[speeder],
+        "brute":[brute],
+        "freighter":[freight],
+        "rect":[],
+        "wormhole":[wormHoleScript]
+    }
+    planets = ["planet","planet-red","planet-orange","planet-green","planet-blue","planet-purple"]
+    data = {}
+    with open("./resources/data/gameData.json", "r") as gameData:
+        data = json.load(gameData)
+    for obj in data["saves"]["save0"]["objects"]:
+        curObj = gameObject(obj["position"]["x"], obj["position"]["y"], obj["shape"], obj["angle"], obj["scale"], [], gameTimer)
+        curObj.isEnemy = obj["isEnemy"]
+        curObj.followingPlayer = obj["followingPlayer"]
+        curObj.hp = obj["hp"]
+        curObj.maxhp = obj["maxhp"]
+        curObj.lastShotTime = obj["lastShotTime"]
+        curObj.xvel = obj["xvel"]
+        curObj.yvel = obj["yvel"]
+        curObj.scripts = objScripts[obj["shape"]]
+        if obj["startingPlanet"]:
+            playerPlanet = curObj
+        enemyShapes = ["speeder", "brute"]
+        if obj["shape"] in enemyShapes:
+            curObj.home = obj["home"]
+            curObj.gotoHome = False
+        print(obj["shape"] == "planet-purple")
+        if obj["shape"] in planets:
+            curObj.openShop = False
+            curObj.pattern = obj["pattern"]
+            print(obj["pattern"], obj["shape"])
+        gameObjects.append(curObj)
+    for key, item in data["saves"]["save0"]["planetEnemies"].items():
+        planetEnemies[gameObjects[int(key)]] = []
+        for enemy in item:
+            planetEnemies[gameObjects[int(key)]].append(gameObjects[int(enemy)])
+    for key, item in data["saves"]["save0"]["enemyPlanets"].items():
+        enemyPlanets[gameObjects[int(key)]] = gameObjects[int(item)]
         
 
 def game():
@@ -1222,7 +1333,8 @@ def game():
     particleManager = particleSystem(gameCamera)
     gameUiHandler = uiHandler()
     gameObjects = []
-
+    
+    global playerPlanet
     playerPlanet = gameObject(250, 250, "planet", 0, 5, [], gameTimer)
     planetEnemies[playerPlanet] = []
     gameObjects.append(playerPlanet)
@@ -1291,8 +1403,8 @@ def game():
     """Create UI"""
     uiElements.append(uiElement(uiForm.panel, (500, 500), (win.get_width()/2-250, win.get_height()/2-250), (100, 100, 100), (0,0,0), 24, (45,45,45), "", []))
     uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 345), (145, 145, 145), (0,0,0), 24, (45,45,45), "Save", [save]))
-    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 385), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
-    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 425), (145, 145, 145), (0,0,0), 24, (45,45,45), "Settings", [openSettings]))
+    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 385), (145, 145, 145), (0,0,0), 24, (45,45,45), "Load", [load]))
+    uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 425), (145, 145, 145), (0,0,0), 24, (45,45,45), "Reset", [reset]))
     uiElements.append(uiElement(uiForm.button, (200, 35), (win.get_width()/2-100, 465), (145, 145, 145), (0,0,0), 24, (45,45,45), "Home", [gotoTitle]))
 
     uiElements[0].hidden = True
