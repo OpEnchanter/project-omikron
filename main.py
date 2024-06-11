@@ -8,7 +8,8 @@ globalMenuPressed = False
 
 pygame.mixer.pre_init(44100, -16, 1, 2048)  # Adjust buffer size as needed
 pygame.init()
-win = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
+out = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
+win = pygame.Surface((1920,1080))
 pygame.display.toggle_fullscreen()
 pygame.display.set_caption("Project: Omikron")
 icon = pygame.image.load("./resources/icon.png").convert_alpha()
@@ -1264,11 +1265,19 @@ def load(self):
         "wormhole":[wormHoleScript]
     }
     planets = ["planet","planet-red","planet-orange","planet-green","planet-blue","planet-purple"]
+    cPlanets = ["planet-red","planet-orange","planet-green","planet-blue","planet-purple"]
     data = {}
     with open("./resources/data/gameData.json", "r") as gameData:
         data = json.load(gameData)
     for obj in data["saves"]["save0"]["objects"]:
-        curObj = gameObject(obj["position"]["x"], obj["position"]["y"], obj["shape"], obj["angle"], obj["scale"], [], gameTimer)
+        shape = obj["shape"]
+        if shape in cPlanets:
+            shape = "planet"
+        curObj = gameObject(obj["position"]["x"], obj["position"]["y"], shape, obj["angle"], obj["scale"], [], gameTimer)
+        if shape == "planet" and obj["shape"] in cPlanets:
+            curObj.shape = obj["shape"]
+            curObj.pattern = obj["pattern"]
+            curObj.gensprite()
         curObj.isEnemy = obj["isEnemy"]
         curObj.followingPlayer = obj["followingPlayer"]
         curObj.hp = obj["hp"]
@@ -1283,16 +1292,14 @@ def load(self):
         if obj["shape"] in enemyShapes:
             curObj.home = obj["home"]
             curObj.gotoHome = False
-        print(obj["shape"] == "planet-purple")
         if obj["shape"] in planets:
             curObj.openShop = False
-            curObj.pattern = obj["pattern"]
-            print(obj["pattern"], obj["shape"])
         gameObjects.append(curObj)
     for key, item in data["saves"]["save0"]["planetEnemies"].items():
         planetEnemies[gameObjects[int(key)]] = []
-        for enemy in item:
-            planetEnemies[gameObjects[int(key)]].append(gameObjects[int(enemy)])
+        if item != False:
+            for enemy in item:
+                planetEnemies[gameObjects[int(key)]].append(gameObjects[int(enemy)])
     for key, item in data["saves"]["save0"]["enemyPlanets"].items():
         enemyPlanets[gameObjects[int(key)]] = gameObjects[int(item)]
         
@@ -1719,6 +1726,10 @@ def game():
         win.blit(icons[2], (10, 230))
         win.blit(icons[3], (10, 305))
 
+        out.fill((255,255,255))
+        output = pygame.transform.scale(win, (910,512))
+        out.blit(pygame.transform.scale(output, (1920,1080)), (0,0))
+
         pygame.display.flip()
 
     pygame.mixer.music.fadeout(500)
@@ -1819,6 +1830,9 @@ def title():
         if titleScreen:
             win.fill((0,0,0))
             titleRenderer.render(titleUI)
+            out.fill((255,255,255))
+            output = pygame.transform.scale(win, (910,512))
+            out.blit(pygame.transform.scale(output, (1920,1080)), (0,0))
             pygame.display.flip()
 
 def tutorialScript():
@@ -2006,6 +2020,10 @@ def tutorialScript():
     win.fill((0,0,0))
 
     titleRenderer.render(titleUI)
+
+    out.fill((255,255,255))
+    output = pygame.transform.scale(win, (910,512))
+    out.blit(pygame.transform.scale(output, (1920,1080)), (0,0))
 
     pygame.display.flip()
 
