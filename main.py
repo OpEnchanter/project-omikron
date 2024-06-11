@@ -8,9 +8,9 @@ globalMenuPressed = False
 
 pygame.mixer.pre_init(44100, -16, 1, 2048)  # Adjust buffer size as needed
 pygame.init()
-out = pygame.display.set_mode([1920, 1080], pygame.RESIZABLE)
+out = pygame.display.set_mode([1920, 1080], pygame.FULLSCREEN)
 win = pygame.Surface((1920,1080))
-pygame.display.toggle_fullscreen()
+
 pygame.display.set_caption("Project: Omikron")
 icon = pygame.image.load("./resources/icon.png").convert_alpha()
 pygame.display.set_icon(icon)
@@ -505,6 +505,9 @@ class inventoryManager():
         else:
             print(f"Unable to remove {ammt} of {item_name}")
             return False
+    def set_item(self, item_name = str, ammt = int):
+        self.inventory[item_name]["amount"] = ammt
+        print(f"Set, {item_name} amount to {ammt}")
         
 
 def playerScript(self):
@@ -1133,6 +1136,11 @@ def play(self):
 
     titleRenderer.render(titleUI)
 
+    out.fill((255,255,255))
+    output = pygame.transform.scale(win, (910,512))
+    ox, oy = out.get_size()
+    out.blit(pygame.transform.scale(output, (ox,oy)), (0,0))
+
     pygame.display.flip()
 
 
@@ -1163,6 +1171,7 @@ def wormHoleScript(self):
 
 def save(self):
     global playerPlanet
+    global inventory
     data = ""
     with open("./resources/data/gameData.json", "r") as gameData:
         data = json.load(gameData)
@@ -1237,15 +1246,41 @@ def save(self):
             data["saves"]["save0"]["planetEnemies"][gameObjects.index(key)] = False
     for key, obj in enemyPlanets.items():
         data["saves"]["save0"]["enemyPlanets"][gameObjects.index(key)] = gameObjects.index(obj)
+    
+    # Save resources
+
+    data["saves"]["save0"]["inventory"] = {}
+
+    for name, ammt in inventory.inventory.items():
+        data["saves"]["save0"]["inventory"][name] = ammt
+
     with open("./resources/data/gameData.json", "w") as gameData:
         json_data = json.dumps(data, indent=4)
         gameData.write(json_data)
 
 def load(self):
+    # Show loading screen
+    titleRenderer = uiHandler()
+
+    titleUI = [uiElement(uiForm.panel, (350, 50), (win.get_width()/2-350/2, 150), pygame.SRCALPHA, (255,255,255), 24, (45,45,45), "Loading...", [leave])]
+
+    win.fill((0,0,0))
+
+    titleRenderer.render(titleUI)
+
+    out.fill((255,255,255))
+    output = pygame.transform.scale(win, (910,512))
+    ox, oy = out.get_size()
+    out.blit(pygame.transform.scale(output, (ox,oy)), (0,0))
+
+    pygame.display.flip()
+
+    # Start loading sequence
     global playerPlanet
     global gameObjects
     global enemyPlanets
     global planetEnemies
+    global inventory
     gameObjects = []
     enemyPlanets = {}
     planetEnemies = {}
@@ -1300,8 +1335,13 @@ def load(self):
         if item != False:
             for enemy in item:
                 planetEnemies[gameObjects[int(key)]].append(gameObjects[int(enemy)])
+        else:
+            planetEnemies[gameObjects[int(key)]] = False
     for key, item in data["saves"]["save0"]["enemyPlanets"].items():
         enemyPlanets[gameObjects[int(key)]] = gameObjects[int(item)]
+
+    for name, ammt in data["saves"]["save0"]["inventory"].items():
+        inventory.set_item(name, ammt["amount"])
         
 
 def game():
@@ -1637,7 +1677,8 @@ def game():
 
             dist = math.sqrt(pvx**2 + pvy**2)
 
-            if planetEnemies[planet] == []:
+            if planetEnemies[planet] == [] and planetEnemies[planet] != False:
+                print(planetEnemies[planet], gameObjects.index(planet))
                 color = random.choice(planetColors)
                 planet.shape = color
                 planet.gensprite()
@@ -1728,7 +1769,8 @@ def game():
 
         out.fill((255,255,255))
         output = pygame.transform.scale(win, (910,512))
-        out.blit(pygame.transform.scale(output, (1920,1080)), (0,0))
+        ox, oy = out.get_size()
+        out.blit(pygame.transform.scale(output, (ox,oy)), (0,0))
 
         pygame.display.flip()
 
@@ -1832,7 +1874,8 @@ def title():
             titleRenderer.render(titleUI)
             out.fill((255,255,255))
             output = pygame.transform.scale(win, (910,512))
-            out.blit(pygame.transform.scale(output, (1920,1080)), (0,0))
+            ox, oy = out.get_size()
+            out.blit(pygame.transform.scale(output, (ox,oy)), (0,0))
             pygame.display.flip()
 
 def tutorialScript():
@@ -2023,7 +2066,8 @@ def tutorialScript():
 
     out.fill((255,255,255))
     output = pygame.transform.scale(win, (910,512))
-    out.blit(pygame.transform.scale(output, (1920,1080)), (0,0))
+    ox, oy = out.get_size()
+    out.blit(pygame.transform.scale(output, (ox,oy)), (0,0))
 
     pygame.display.flip()
 
