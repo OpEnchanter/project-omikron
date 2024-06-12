@@ -8,8 +8,10 @@ globalMenuPressed = False
 
 pygame.mixer.pre_init(44100, -16, 1, 2048)  # Adjust buffer size as needed
 pygame.init()
-out = pygame.display.set_mode([1920, 1080], pygame.FULLSCREEN)
-win = pygame.Surface((1920,1080))
+out = pygame.display.set_mode([1920, 1080], pygame.FULLSCREEN, pygame.DOUBLEBUF)
+ox, oy = out.get_size()
+pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.JOYBUTTONDOWN])
+win = pygame.Surface((ox,oy))
 
 pygame.display.set_caption("Project: Omikron")
 icon = pygame.image.load("./resources/icon.png").convert_alpha()
@@ -53,6 +55,15 @@ assets = {
     "planet-purple-alt":pygame.image.load("./resources/sprites/planets/planet-purple-alt.png").convert_alpha(),
     "bullet":pygame.image.load("./resources/sprites/bullet.png").convert_alpha()
     }
+particleAssets = {
+    "expFr0":pygame.image.load("./resources/sprites/animated/explosion/frame0.png").convert_alpha(),
+    "expFr1":pygame.image.load("./resources/sprites/animated/explosion/frame1.png").convert_alpha(),
+}
+
+for name, frame in particleAssets.items():
+    scalex = frame.get_width()*0.3
+    scaley = frame.get_height()*0.3
+    particleAssets[name] = pygame.transform.scale(frame, (scalex, scaley))
 
 # Play the song indefinitely
 pygame.mixer.music.play(loops=-1)
@@ -92,7 +103,9 @@ class camera():
             self.runningCameraAction = False
         for obj in gameObjects:
             renderedPosition = [obj.rotated_rect.topleft[0]+obj.position["x"]+self.position["x"]+self.cameraOffset[0], obj.rotated_rect.topleft[1]+obj.position["y"]+self.position["y"]+self.cameraOffset[1]]
-            if (renderedPosition[0] > -1000 and renderedPosition[0] < win.get_width()+1000 and renderedPosition[1] > -1000 and renderedPosition[1] < win.get_height()+1000):
+            scaleX = obj.sprite.get_width()
+            scaleY = obj.sprite.get_height()
+            if (renderedPosition[0] > -scaleX and renderedPosition[0] < win.get_width()+scaleX and renderedPosition[1] > -scaleY and renderedPosition[1] < win.get_height()+scaleY):
                 win.blit(obj.sprite, (renderedPosition[0], renderedPosition[1]))
                 obj.rendered = True
             else:
@@ -421,15 +434,9 @@ class particle():
 
         if s == particleShape.explosion:
             self.animated = True
-            frame1 = pygame.image.load("./resources/sprites/animated/explosion/frame0.png").convert_alpha()
-            scalex = frame1.get_width()*0.3
-            scaley = frame1.get_height()*0.3
-            frame1 = pygame.transform.scale(frame1, (scalex, scaley))
+            frame1 = particleAssets["expFr0"]
 
-            frame2 = pygame.image.load("./resources/sprites/animated/explosion/frame1.png").convert_alpha()
-            scalex = frame2.get_width()*0.3
-            scaley = frame2.get_height()*0.3
-            frame2 = pygame.transform.scale(frame2, (scalex, scaley))
+            frame2 = particleAssets["expFr1"]
 
             self.frames = [frame1, frame2]
 
@@ -1751,14 +1758,13 @@ def game():
 
         gameCamera.render(gameObjects)
         particleManager.render()
-
-        pygame.time.Clock().tick(6000)
         gameTimer.frame()
 
         for obj in gameObjects:
             obj.frame()
         for elem in uiElements:
-            elem.frame()
+            if not elem.hidden:
+                elem.frame()
 
         gameUiHandler.render(uiElements)
 
