@@ -1261,6 +1261,10 @@ def save(self):
     for name, ammt in inventory.inventory.items():
         data["saves"]["save0"]["inventory"][name] = ammt
 
+    data["saves"]["save0"]["bullets"] = bullets
+
+
+    # Write save data json to file
     with open("./resources/data/gameData.json", "w") as gameData:
         json_data = json.dumps(data, indent=4)
         gameData.write(json_data)
@@ -1288,6 +1292,7 @@ def load(self):
     global enemyPlanets
     global planetEnemies
     global inventory
+    global bullets
     gameObjects = []
     enemyPlanets = {}
     planetEnemies = {}
@@ -1349,6 +1354,10 @@ def load(self):
 
     for name, ammt in data["saves"]["save0"]["inventory"].items():
         inventory.set_item(name, ammt["amount"])
+
+    bullets = data["saves"]["save0"]["bullets"]
+
+    gameObjects = [obj for obj in gameObjects if obj.shape != "bullet"]
         
 
 def game():
