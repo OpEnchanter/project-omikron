@@ -15,8 +15,8 @@ IMPORTANT: Do NOT post this list to the issue-tracker. Use it as a basis for
             tracking down the missing module yourself. Thanks!
 
 missing module named pyimod02_importers - imported by C:\Python312\Lib\site-packages\PyInstaller\hooks\rthooks\pyi_rth_pkgutil.py (delayed), C:\Python312\Lib\site-packages\PyInstaller\hooks\rthooks\pyi_rth_pkgres.py (delayed)
-missing module named pwd - imported by posixpath (delayed, conditional, optional), shutil (delayed, optional), tarfile (optional), pathlib (delayed, optional), subprocess (delayed, conditional, optional), http.server (delayed, optional), psutil (optional), netrc (delayed, conditional), getpass (delayed), pkg_resources._vendor.backports.tarfile (optional)
-missing module named grp - imported by shutil (delayed, optional), tarfile (optional), pathlib (delayed, optional), subprocess (delayed, conditional, optional), pkg_resources._vendor.backports.tarfile (optional)
+missing module named pwd - imported by posixpath (delayed, conditional, optional), subprocess (delayed, conditional, optional), shutil (delayed, optional), tarfile (optional), pathlib (delayed, optional), http.server (delayed, optional), psutil (optional), netrc (delayed, conditional), getpass (delayed), pkg_resources._vendor.backports.tarfile (optional)
+missing module named grp - imported by subprocess (delayed, conditional, optional), shutil (delayed, optional), tarfile (optional), pathlib (delayed, optional), pkg_resources._vendor.backports.tarfile (optional)
 missing module named _posixsubprocess - imported by subprocess (conditional), multiprocessing.util (delayed)
 missing module named fcntl - imported by subprocess (optional), psutil._compat (delayed, optional)
 missing module named typing_extensions - imported by pkg_resources._vendor.packaging.metadata (conditional, optional), packaging.metadata (conditional, optional)
@@ -46,7 +46,6 @@ missing module named multiprocessing.get_context - imported by multiprocessing (
 missing module named multiprocessing.TimeoutError - imported by multiprocessing (top-level), multiprocessing.pool (top-level)
 missing module named multiprocessing.set_start_method - imported by multiprocessing (top-level), multiprocessing.spawn (top-level)
 missing module named multiprocessing.get_start_method - imported by multiprocessing (top-level), multiprocessing.spawn (top-level)
-missing module named asyncio.DefaultEventLoopPolicy - imported by asyncio (delayed, conditional), asyncio.events (delayed, conditional)
 missing module named OpenGL - imported by pygame (delayed)
 missing module named _dummy_thread - imported by numpy.core.arrayprint (optional)
 missing module named dummy_threading - imported by psutil._compat (optional)
@@ -75,6 +74,7 @@ missing module named numpy.core.arange - imported by numpy.core (top-level), num
 missing module named numpy.core.empty - imported by numpy.core (top-level), numpy.linalg.linalg (top-level), numpy.testing._private.utils (top-level), numpy.fft.helper (top-level)
 missing module named numpy.core.float32 - imported by numpy.core (top-level), numpy.testing._private.utils (top-level)
 missing module named numpy.core.intp - imported by numpy.core (top-level), numpy.linalg.linalg (top-level), numpy.testing._private.utils (top-level)
+missing module named asyncio.DefaultEventLoopPolicy - imported by asyncio (delayed, conditional), asyncio.events (delayed, conditional)
 missing module named numpy.core.linspace - imported by numpy.core (top-level), numpy.lib.index_tricks (top-level)
 missing module named numpy.core.iinfo - imported by numpy.core (top-level), numpy.lib.twodim_base (top-level)
 missing module named numpy.core.transpose - imported by numpy.core (top-level), numpy.lib.function_base (top-level)

@@ -2006,7 +2006,6 @@ def tutorialScript():
         
         win.fill((0,0,0))
         
-        
         gameCamera.render(gameObjects)
 
         uiManager.render(uiElements)
@@ -2033,6 +2032,11 @@ def tutorialScript():
 
         pygame.time.Clock().tick(6000)
         gameTimer.frame()
+
+        out.fill((255,255,255))
+        output = pygame.transform.scale(win, (910,512))
+        ox, oy = out.get_size()
+        out.blit(pygame.transform.scale(output, (ox,oy)), (0,0))
 
         pygame.display.flip()
 
